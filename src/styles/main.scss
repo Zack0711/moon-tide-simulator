@@ -1,0 +1,44 @@
+@import "_custom.scss";
+@import "~bootstrap/scss/bootstrap";
+
+$fa-font-path: "~font-awesome/fonts";
+@import "~font-awesome/scss/font-awesome";
+
+@import "_font-icon.scss";
+
+@import "_mixins.scss";
+@import "_variables.scss";
+
+@import "_utilities.scss";
+@import "_basic.scss";
+
+body{
+  font-size: 12px;
+}
+
+.map{
+  width: 100%;
+  height: calc(100vh - 64px);
+}
+
+.route-panel{
+  margin: 10px;
+  height: 72vh;
+  overflow: auto;
+}
+
+.main-section{
+  height: 100vh;
+
+  [class*="col-"]{
+    max-height: 100%;    
+  }  
+  .time-remain{
+    height: 64px;
+  }
+}
+
+
+.panel-list{
+  
+}

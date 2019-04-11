@@ -1,9 +1,30 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Moon & Tide simulator</title>
+    <title>Eclipse Map</title>
   </head>
   <body>
-    <div id="js-simulator"></div>
+    <div class="main-section row no-gutters">
+    	<div class="time-remain col-12 py-3 text-center text-info"></div>
+	    <div class="col-7">
+	    	<div id="map" class="map"></div>
+	    </div>	
+	    <div class="info-panel col-5 p-3">
+	    	<h3>嘉義火車站</h3>
+	    	<div class="weather-info">	    		
+	    	</div>
+	    	<div class="nav-tool">
+	    		<button class="btn btn-light nav-btn btn-eclipse">日蝕</button>
+	    		<button class="btn btn-light nav-btn btn-route">導航</button>
+	    		<button class="btn btn-light nav-btn btn-weather">氣象</button>
+	    	</div>
+	    	<div class="panel-list">
+	    		<div class="eclipse-panel"></div>
+		    	<div id="right-panel" class="route-panel"></div>    		
+	    		<div class="weather-panel"></div>
+	    	</div>
+	    </div>	
+    </div>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCO1K1Q1MUuh4MCGEcwOQ9OC1jdv9a1sO8" async defer></script>
   </body>
 </html>
