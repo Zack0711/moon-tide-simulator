@@ -480,8 +480,8 @@ function gettime(circumstances) {
    if (t < 10.0)
       ans += "0";
    ans += Math.floor(t);
-   ans += ".";
-   ans += Math.floor(10.0 * (t - Math.floor(t)));
+   //ans += ".";
+   //ans += Math.floor(10.0 * (t - Math.floor(t)));
    // Add an asterix if the altitude is less than zero
    if (circumstances[31] <= 0.0)
       ans += "*";
@@ -529,54 +529,99 @@ function getazi(circumstances) {
   return ans;
 }
 
+const convertToDateTime = c => {
+  const dateArr = getdate(c).split('/');
+  const timeArr = gettime(c).split(':');
+  return Date.UTC(dateArr[0], dateArr[1]-1, dateArr[2], Number(timeArr[0]), Number(timeArr[1]), Number(timeArr[2]));
+}
 //
 // Display the information about 1st contact
 function displayc1() {
-   var html = "<tr><td>";
-   html += "Start&nbsp;of&nbsp;partial&nbsp;eclipse";
-   html += " (C1)&nbsp;:&nbsp;</td><td>" + getdate(c1) + "</td><td>" + gettime(c1) + "</td><td style=\"text-align: right;\">" + getalt(c1) + "&deg;</td><td style=\"text-align: right;\">" + getazi(c1) + "&deg;</td></tr>";
+  const cDate = new Date(convertToDateTime(c1));
 
-   return html;
+  return `
+    <tr>
+      <td>
+        <label class='label-ec label-c1' data-toggle="tooltip" title="日面與月面第一次外切，偏食開始。">初虧</label>
+      </td>
+      <td>${cDate.getFullYear()}/${cDate.getMonth()+1}/${cDate.getDate()}</td>
+      <td>${cDate.getHours()}:${cDate.getMinutes()}:${cDate.getSeconds()}</td>
+      <td>${getalt(c1)}°</td>
+      <td>${getazi(c1)}°</td>
+    </tr>
+  `
 }
 
 //
 // Display the information about 2nd contact
 function displayc2() {
-   var html = "<tr><td>";
-   html += "Start&nbsp;of&nbsp;central&nbsp;eclipse";
-   html += " (C2)&nbsp;:&nbsp;</td><td>" + getdate(c2) + "</td><td>" + gettime(c2) + "</td><td style=\"text-align: right;\">" + getalt(c2) + "&deg;</td><td style=\"text-align: right;\">" + getazi(c2) + "&deg;</td></tr>";
+  const cDate = new Date(convertToDateTime(c2));
 
-   return html;
+  return `
+    <tr>
+      <td>
+        <label class='label-ec label-c2' data-toggle="tooltip" title="日面與月面第一次內切，環食開始。">環食始</label>        
+      </td>
+      <td>${cDate.getFullYear()}/${cDate.getMonth()+1}/${cDate.getDate()}</td>
+      <td>${cDate.getHours()}:${cDate.getMinutes()}:${cDate.getSeconds()}</td>
+      <td>${getalt(c2)}°</td>
+      <td>${getazi(c2)}°</td>
+    </tr>
+  `
 }
 
 //
 // Display the information about maximum eclipse
 function displaymid() {
-   var html = "<tr><td>";
-   html += "Maximum&nbsp;eclipse"; // "Mid eclipse";
-   html += "&nbsp;:&nbsp;</td><td>" + getdate(mid) + "</td><td>" + gettime(mid) + "</td><td style=\"text-align: right;\">" + getalt(mid) + "&deg;</td><td style=\"text-align: right;\">" + getazi(mid) + "&deg;</td></tr>";
+  const cDate = new Date(convertToDateTime(mid));
 
-   return html;
+  return `
+    <tr>
+      <td>
+        <label class='label-ec label-mid' data-toggle="tooltip" title="日面中心與月面中心最靠近的時候，也就是掩食程度最大的時刻。">食甚</label>        
+      </td>
+      <td>${cDate.getFullYear()}/${cDate.getMonth()+1}/${cDate.getDate()}</td>
+      <td>${cDate.getHours()}:${cDate.getMinutes()}:${cDate.getSeconds()}</td>
+      <td>${getalt(mid)}°</td>
+      <td>${getazi(mid)}°</td>
+    </tr>
+  `
 }
 
 //
 // Display the information about 3rd contact
 function displayc3() {
-   var html = "<tr><td>";
-   html += "End&nbsp;of&nbsp;central&nbsp;eclipse";
-   html += " (C3)&nbsp;:&nbsp;</td><td>" + getdate(c3) + "</td><td>" + gettime(c3) + "</td><td style=\"text-align: right;\">" + getalt(c3) + "&deg;</td><td style=\"text-align: right;\">" + getazi(c3) + "&deg;</td></tr>";
+  const cDate = new Date(convertToDateTime(c3));
 
-   return html;
+  return `
+    <tr>
+      <td>
+        <label class='label-ec label-c3' data-toggle="tooltip" title="日面與月面第二次內切，環食結束。">環食終</label>        
+      </td>
+      <td>${cDate.getFullYear()}/${cDate.getMonth()+1}/${cDate.getDate()}</td>
+      <td>${cDate.getHours()}:${cDate.getMinutes()}:${cDate.getSeconds()}</td>
+      <td>${getalt(c3)}°</td>
+      <td>${getazi(c3)}°</td>
+    </tr>
+  `
 }
 
 //
 // Display the information about 4th contact
 function displayc4() {
-   var html = "<tr><td>";
-   html += "End&nbsp;of&nbsp;partial&nbsp;eclipse";
-   html += " (C4)&nbsp;:&nbsp;</td><td>" + getdate(c4) + "</td><td>" + gettime(c4) + "</td><td style=\"text-align: right;\">" + getalt(c4) + "&deg;</td><td style=\"text-align: right;\">" + getazi(c4) + "&deg;</td></tr>";
+  const cDate = new Date(convertToDateTime(c4));
 
-   return html;
+  return `
+    <tr>
+      <td>
+        <label class='label-ec label-c4' data-toggle="tooltip" title="日面與月面第二次外切，偏食結束。">復圓</label>        
+      </td>
+      <td>${cDate.getFullYear()}/${cDate.getMonth()+1}/${cDate.getDate()}</td>
+      <td>${cDate.getHours()}:${cDate.getMinutes()}:${cDate.getSeconds()}</td>
+      <td>${getalt(c4)}°</td>
+      <td>${getazi(c4)}°</td>
+    </tr>
+  `
 }
 
 //
@@ -589,13 +634,13 @@ function getduration() {
    else if (tmp >= 24.0)
       tmp -= 24.0;
    tmp = (tmp * 60.0) - 60.0 * Math.floor(tmp) + 0.05 / 60.0;
-   var ans = Math.floor(tmp) + "m";
+   var ans = Math.floor(tmp) + "分";
    tmp = (tmp * 60.0) - 60.0 * Math.floor(tmp);
    if (tmp < 10.0)
       ans += "0";
    ans += Math.floor(tmp);
    ans += ".";
-   ans += Math.floor((tmp - Math.floor(tmp)) * 10.0).toString() + "s";
+   ans += Math.floor((tmp - Math.floor(tmp)) * 10.0).toString() + "秒";
 
    return ans;
 }
@@ -646,6 +691,8 @@ const loc_circ = (lat, lon) => {
    var partialEvent = false;
    var isEclipse = true;
 
+   var eclipseDate = {};
+
    readdata(lat, lon);
    getall();
    htmlmid = displaymid();
@@ -676,8 +723,8 @@ const loc_circ = (lat, lon) => {
                if ((c2[31] > -0.1) && (c3[31] > -0.1)) {
                   // Sun above the horizon for the entire annular/total event
                   if (mid[36] == 2) {
-                     htmlEclipse += "Annular&nbsp;Solar&nbsp;Eclipse";
-                     htmlEclipse += "<br />Duration&nbsp;of&nbsp;Annularity:&nbsp;";
+                     htmlEclipse += "日環食";
+                     htmlEclipse += "<br/>日環食持續時間：";
                      htmlc1 = htmlc1.replace("&nbsp;of&nbsp;central&nbsp;eclipse", "&nbsp;of&nbsp;annular&nbsp;eclipse");
                      htmlc2 = htmlc2.replace("&nbsp;of&nbsp;central&nbsp;eclipse", "&nbsp;of&nbsp;annular&nbsp;eclipse");
                      htmlc3 = htmlc3.replace("&nbsp;of&nbsp;central&nbsp;eclipse", "&nbsp;of&nbsp;annular&nbsp;eclipse");
@@ -705,11 +752,11 @@ const loc_circ = (lat, lon) => {
          if ((c1[31] <= 0.0) && (c4[31] <= 0.0)) {
             // Sun below the horizon
             isEclipse = false;
-            htmlEclipse += "No&nbsp;Solar&nbsp;Eclipse";
+            htmlEclipse += "No Solar Eclipse";
          }
          else {
             partialEvent = true;
-            htmlEclipse += "Partial&nbsp;Solar&nbsp;Eclipse";
+            htmlEclipse += "Partial Solar Eclipse";
          }
       }
    }
@@ -720,31 +767,37 @@ const loc_circ = (lat, lon) => {
    }
 
    if (isEclipse == true) {
+
       var maxmag = Math.round(mid[34] * 1000) / 1000.0;
-      htmlEclipse += "<br />Magnitude:&nbsp;" + maxmag;
-      htmlEclipse += "<br />Obscuration:&nbsp;" + getcoverage();
+      htmlEclipse += "<br/>最大食分：" + maxmag;
+      htmlEclipse += "<br/>掩食面積比率：" + getcoverage();
 
       html = "";
-      html += "<div id=\"mapmarker\" style=\"width: 100%;\">";
-      html += "<table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"width: 100%;\">";
+      html += "<div id=\"mapmarker\">";
+      html += "<table class='table'>";
       html += "<thead><tr>";      
       if (typeof gCurrentMarker != "undefined")
       {
         if (gCurrentMarker != null)
-          html += "<td><span title=\"Latitude\">Lat.</span>:&nbsp;" + latitudeToString(lat.toFixed(5)) + "<br/><span title=\"Longitude\">Long.</span>:&nbsp;" + longitudeToString(lon.toFixed(5)) + ((mid[36] >= 2) ? "<br />" : "") + "<br/><input type=\"button\" id=\"clearmark\" value=\"Clear Marker\" onclick=\"clearMarker();\"></td>";
+          html += "<td><span title=\"Latitude\">緯度</span>:&nbsp;" + latitudeToString(lat.toFixed(5)) + "<br/><span title=\"Longitude\">經度</span>:&nbsp;" + longitudeToString(lon.toFixed(5)) + ((mid[36] >= 2) ? "<br />" : "") + "<br/><input type=\"button\" id=\"clearmark\" value=\"Clear Marker\" onclick=\"clearMarker();\"></td>";
         else
-          html += "<td><span title=\"Latitude\">Lat.</span>:&nbsp;" + latitudeToString(lat.toFixed(5)) + "<br/><span title=\"Longitude\">Long.</span>:&nbsp;" + longitudeToString(lon.toFixed(5)) + "</td>";
+          html += "<td><span title=\"Latitude\">緯度</span>:&nbsp;" + latitudeToString(lat.toFixed(5)) + "<br/><span title=\"Longitude\">經度</span>:&nbsp;" + longitudeToString(lon.toFixed(5)) + "</td>";
       }
       else
-        html += "<td><span title=\"Latitude\">Lat.</span>:&nbsp;" + latitudeToString(lat.toFixed(5)) + "<br/><span title=\"Longitude\">Long.</span>:&nbsp;" + longitudeToString(lon.toFixed(5)) + "</td>";
+        html += "<td><span title=\"Latitude\">緯度</span>:&nbsp;" + latitudeToString(lat.toFixed(5)) + "<br/><span title=\"Longitude\">經度</span>:&nbsp;" + longitudeToString(lon.toFixed(5)) + "</td>";
       html += "<td>" + htmlEclipse + "</td>";
       html += "</tr></thead>";
       html += "</table>";
 
-      html += "<div style=\"margin: auto; width: 100%;\"><table border=\"0\" cellspacing=\"1\" style=\"width: 100%;\">";
-      html += "<thead><tr style=\"text-align: center; color: #FFFFFF; background: #006699;\">";
-      html += "<td>Event</td><td>Date</td><td>Time&nbsp;(UT)</td><td title=\"Altitude\">Alt</td><td title=\"Azimuth\">Azi</td>";
-      html += "</tr></thead><tbody>";
+      html += `
+        <table class='table'>
+          <thead>
+            <tr>
+              <th>日食階段</th><th>日期</th><th>時間</th><th>高度角</th><th>方位角</th>
+            </tr>
+          </thead>
+          <tbody>
+      `
       html += htmlc1;
       if (partialEvent == false)
          html += htmlc2;
@@ -756,25 +809,31 @@ const loc_circ = (lat, lon) => {
    }
    else {
       // No eclipse
-      html = "<div id=\"mapmarker\" style=\"width: 150px;\">";
-      html += "<table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"width: 100%;\">";
+      html = "<div id=\"mapmarker\">";
+      html += "<table class='table'>";
       html += "<thead><tr>";
       if (typeof gCurrentMarker != "undefined")
       {
         if (gCurrentMarker != null)
-          html += "<td><span title=\"Latitude\">Lat.</span>:&nbsp;" + latitudeToString(lat.toFixed(5)) + "<br/><span title=\"Longitude\">Long.</span>:&nbsp;" + longitudeToString(lon.toFixed(5)) + "<br/><input type=\"button\" id=\"clearmark\" value=\"Clear Marker\" onclick=\"clearMarker();\"></td>";
+          html += "<td><span title=\"Latitude\">緯度</span>:&nbsp;" + latitudeToString(lat.toFixed(5)) + "<br/><span title=\"Longitude\">經度</span>:&nbsp;" + longitudeToString(lon.toFixed(5)) + "<br/><input type=\"button\" id=\"clearmark\" value=\"Clear Marker\" onclick=\"clearMarker();\"></td>";
         else
-          html += "<td><span title=\"Latitude\">Lat.</span>:&nbsp;" + latitudeToString(lat.toFixed(5)) + "<br/><span title=\"Longitude\">Long.</span>:&nbsp;" + longitudeToString(lon.toFixed(5)) + "</td>";
+          html += "<td><span title=\"Latitude\">緯度</span>:&nbsp;" + latitudeToString(lat.toFixed(5)) + "<br/><span title=\"Longitude\">經度</span>:&nbsp;" + longitudeToString(lon.toFixed(5)) + "</td>";
       }
       else
-        html += "<td><span title=\"Latitude\">Lat.</span>:&nbsp;" + latitudeToString(lat.toFixed(5)) + "<br/><span title=\"Longitude\">Long.</span>:&nbsp;" + longitudeToString(lon.toFixed(5)) + "</td>";
+        html += "<td><span title=\"Latitude\">緯度</span>:&nbsp;" + latitudeToString(lat.toFixed(5)) + "<br/><span title=\"Longitude\">經度</span>:&nbsp;" + longitudeToString(lon.toFixed(5)) + "</td>";
       html += "</tr></thead>";
       html += "</table>";
       html += "<br/><p style=\"font-weight: bold;\">" + htmlEclipse + "</p>";
    }
    html += "</div>";
 
-   return html;
+   eclipseDate['c1'] = convertToDateTime(c1);
+   eclipseDate['c2'] = convertToDateTime(c2);
+   eclipseDate['mid'] = convertToDateTime(mid);
+   eclipseDate['c3'] = convertToDateTime(c3);
+   eclipseDate['c4'] = convertToDateTime(c4);
+
+   return {html, eclipseDate};
 }
 
 export {

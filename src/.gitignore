@@ -1,1 +1,11 @@
-*.html
+node_modules/
+dis/
+.cache
+.DS_Store
+*.log
+*.pyc
+*.retry
+*.map
+*.lock
+*.7z
+*.zip

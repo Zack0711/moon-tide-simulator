@@ -1,0 +1,30 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg">
+<metadata>Copyright (C) 2019 by original authors @ fontello.com</metadata>
+<defs>
+<font id="fontello" horiz-adv-x="1000" >
+<font-face font-family="fontello" font-weight="400" font-stretch="normal" units-per-em="1000" ascent="850" descent="-150" />
+<missing-glyph horiz-adv-x="1000" />
+<glyph glyph-name="play" unicode="&#xe80e;" d="M772 333l-741-412q-13-7-22-2t-9 20v822q0 14 9 20t22-2l741-412q13-7 13-17t-13-17z" horiz-adv-x="785.7" />
+
+<glyph glyph-name="quote-left" unicode="&#xe810;" d="M911 16l-335 0 0 335q0 139 99 236t236 98l0-111q-93 0-158-66t-65-157l223 0 0-335z m-558 0l-335 0 0 335q0 139 98 236t237 98l0-111q-93 0-158-66t-65-157l223 0 0-335z" horiz-adv-x="928" />
+
+<glyph glyph-name="quote-right" unicode="&#xe814;" d="M18 685l335 0 0-334q0-140-98-238t-237-97l0 111q92 0 158 65t65 159l-223 0 0 334z m558 0l335 0 0-334q0-140-98-238t-237-97l0 111q92 0 158 65t65 159l-223 0 0 334z" horiz-adv-x="928" />
+
+<glyph glyph-name="chart-bar" unicode="&#xe815;" d="M180 516l0-538-180 0 0 538 180 0z m250-138l0-400-180 0 0 400 180 0z m250 344l0-744-180 0 0 744 180 0z" horiz-adv-x="680" />
+
+<glyph glyph-name="chart" unicode="&#xe816;" d="M84 49c-19 0-37 7-52 19-37 29-43 83-13 119l240 297c26 33 73 42 109 20l229-133 202 250c29 35 83 41 119 11 36-29 41-83 12-119l-247-305c-26-31-73-40-109-19l-229 133-195-241c-17-22-41-32-66-32z" horiz-adv-x="949" />
+
+<glyph glyph-name="temperatire" unicode="&#xe817;" d="M286 190q34-8 57-36t22-64q0-42-31-73t-74-32-73 31-31 74q0 37 23 64t56 36l0 290q0 10 8 18t17 9 18-9 8-18l0-290z m157 84q78-79 78-184 0-107-77-184t-184-77-184 77-76 184q0 107 78 184l0 415q0 75 53 129t129 54 129-54 54-129l0-415z m-183-340q65 0 111 46t45 110q0 88-77 134l0 465q0 31-23 54t-56 24-55-24-22-54l0-465q-79-46-79-134 0-65 45-110t111-46z" horiz-adv-x="521" />
+
+<glyph glyph-name="chart-bar-1" unicode="&#xe818;" d="M357 350v-286h-143v286h143z m214 286v-572h-142v572h142z m572-643v-72h-1143v858h71v-786h1072z m-357 500v-429h-143v429h143z m214 214v-643h-143v643h143z" horiz-adv-x="1142.9" />
+
+<glyph glyph-name="beaker" unicode="&#xf0c3;" d="M852 42q31-50 12-85t-78-36h-643q-59 0-78 36t12 85l280 443v222h-36q-14 0-25 11t-10 25 10 25 25 11h286q15 0 25-11t11-25-11-25-25-11h-36v-222z m-435 405l-151-240h397l-152 240-11 17v243h-71v-243z" horiz-adv-x="928.6" />
+
+<glyph glyph-name="rocket" unicode="&#xf135;" d="M804 600q0 22-16 38t-38 16-38-16-16-38 16-38 38-16 38 16 16 38z m125 161q0-139-43-240t-141-202q-45-44-109-98l-11-211q-1-9-9-15l-214-125q-4-2-9-2-7 0-13 5l-36 36q-7 7-4 17l47 155-156 156-154-47q-2-1-6-1-7 0-12 5l-36 36q-10 11-3 22l125 214q6 8 15 9l211 11q54 64 98 109 105 104 200 144t241 40q7 0 13-6t6-12z" horiz-adv-x="928.6" />
+
+<glyph glyph-name="thermometer-3" unicode="&#xf2c8;" d="M357 100q0-45-31-76t-76-31-76 31-31 76q0 34 19 61t52 40v363h72v-363q32-12 52-40t19-61z m72 0q0 43-19 80t-53 63v428q0 45-31 76t-76 32-76-32-31-76v-428q-34-25-53-63t-19-80q0-74 53-126t126-53 126 53 53 126z m71 0q0-103-73-177t-177-73-177 73-73 177q0 102 71 175v396q0 75 53 127t126 52 126-52 53-127v-396q71-73 71-175z m71 321v-71h-107v71h107z m0 143v-71h-107v71h107z m0 143v-71h-107v71h107z" horiz-adv-x="571.4" />
+</font>
+</defs>
+</svg>

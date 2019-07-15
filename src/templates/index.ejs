@@ -2,28 +2,64 @@
 <html>
   <head>
     <title>Eclipse Map</title>
+    <meta charset="utf-8">
   </head>
   <body>
     <div class="main-section row no-gutters">
-    	<div class="time-remain col-12 py-3 text-center text-info"></div>
-	    <div class="col-7">
-	    	<div id="map" class="map"></div>
-	    </div>	
-	    <div class="info-panel col-5 p-3">
-	    	<h3>嘉義火車站</h3>
-	    	<div class="weather-info">	    		
-	    	</div>
-	    	<div class="nav-tool">
-	    		<button class="btn btn-light nav-btn btn-eclipse">日蝕</button>
-	    		<button class="btn btn-light nav-btn btn-route">導航</button>
-	    		<button class="btn btn-light nav-btn btn-weather">氣象</button>
-	    	</div>
-	    	<div class="panel-list">
-	    		<div class="eclipse-panel"></div>
-		    	<div id="right-panel" class="route-panel"></div>    		
-	    		<div class="weather-panel"></div>
-	    	</div>
-	    </div>	
+      <div class="time-remain col-12 py-3 text-center text-info"></div>
+      <div class="col-7">
+        <div id="map" class="map"></div>
+      </div>  
+      <div class="info-panel col-5 p-3">
+        <div class="row no-gutters">
+          <h3 class="col">嘉義火車站</h3>        
+          <button class="btn btn-light btn-streeview">
+            <i class="fa fa-street-view" aria-hidden="true"></i> 顯示街景
+          </button>
+        </div>
+        <div class="weather-info pb-3">          
+        </div>
+        <div class="nav-tool">
+          <button class="btn btn-light nav-btn btn-eclipse">日食</button>
+          <button class="btn btn-light nav-btn btn-route">導航</button>
+          <button class="btn btn-light nav-btn btn-weather">歷史天氣</button>
+        </div>
+        <div class="panel-list">
+          <div class="eclipse-panel py-3"></div>
+          <div class="route-panel py-3">
+            <div class="text-center">
+              <button type="button" class="btn btn-light btn-route-drive active">
+                <i class="fa fa-car" aria-hidden="true"></i> 自駕
+              </button>
+              <button type="button" class="btn btn-light btn-route-mrt">
+                <i class="fa fa-subway" aria-hidden="true"></i> 大眾運輸
+              </button>              
+            </div>
+            <div id="right-panel"></div>
+          </div>        
+          <div class="weather-panel py-3">
+            <div class="history"></div>
+          </div>
+        </div>
+      </div>  
+    </div>
+    <div id="info-modal" class="modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Modal title</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <p>Modal body text goes here.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="location-content">
+      <div class="p-3"></div>
     </div>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCO1K1Q1MUuh4MCGEcwOQ9OC1jdv9a1sO8" async defer></script>
   </body>

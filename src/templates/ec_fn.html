@@ -1,0 +1,1292 @@
+<script type="text/javascript">
+//<![CDATA[<!--
+
+var gPrevLat = 0;
+var gPrevLng = 0;
+var gCurrentMarker = null;
+
+/* Insert Eclipse Besselian Elements below */
+
+//
+// Eclipse Elements
+//
+// First line -
+//   (0) Julian date
+//   (1) t0
+//   (2) tmin
+//   (3) tmax
+//   (4) dT
+// Second line -
+//   (5) X0, X1, X2, X3 - X elements
+// Third line -
+//   (9) Y0, Y1, Y2, Y3 - Y elements
+// Fourth line -
+//   (13) D0, D1, D2 - D elements
+// Fifth line -
+//   (16) M0, M1, M2 - mu elements
+// Sixth line -
+//   (19) L10, L11, L12 - L1 elements
+// Seventh line -
+//   (22) L20, L21, L22 - L2 elements
+// Eighth line -
+//   (25) tan f1
+//   (26) tan f2
+//
+
+var elements = new Array(
+//*** #0U - Input Besselian Elements here
+2459021.778650,   7.0,  -4.0,   4.0,    69.4,
+    0.15426011,    0.53115284,    0.00002584,   -0.00000693,
+    0.13640407,    0.05138711,   -0.00016094,   -0.00000079,
+   23.43566895,   -0.00023278,   -0.00000559,
+  284.53555298,   14.99911118,    0.00000023,
+    0.55233639,   -0.00012230,   -0.00001071,
+    0.00614849,   -0.00012169,   -0.00001066,
+    0.00460090,    0.00457799
+);
+
+/* End Besselian Elements */
+
+var map;
+var markers = new Array();
+var mouselat, mouselng;
+
+
+function enlarge() {
+  wd = document.createElement("div");
+  wd.setAttribute("id", "widetxt");
+  document.getElementsByTagName("body").item(0).appendChild(wd);
+  var obj = document.getElementById("map");
+  if (!document.getElementById("showlarge").checked) {
+    document.getElementsByTagName("body").item(0).removeChild(wd);
+    pd = document.getElementById("paperw");
+    if (pd != null)
+      pd.setAttribute("id", "paper");
+    obj.style.width = "725px";
+    obj.style.height = "500px";
+  }
+  else {
+    pd = document.getElementById("paper");
+    if (pd != null)
+      pd.setAttribute("id", "paperw");
+  if (window.innerWidth <= 725)
+    obj.style.width = "725px";
+  else
+    obj.style.width = "100%";//(window.innerWidth - 35) + "px";
+  if (window.innerHeight <= 500)
+    obj.style.height = "500px";
+  else
+    obj.style.height = (window.innerHeight - 50) + "px";
+  }
+  if (obj.offsetParent) {
+    var curtop = 0;
+    do {
+      curtop += obj.offsetTop;
+    } while (obj = obj.offsetParent);
+    scrollTo(0, curtop);
+  }
+}
+
+function createMarker(point) {
+  var i;
+  var markericon = new GIcon(G_DEFAULT_ICON, "../../image/marker.png");
+  var marker = new GMarker(point, {icon: markericon, draggable: true});
+  gCurrentMarker = marker;
+  GEvent.addListener(marker, "mouseover", function() {
+    gCurrentMarker = null;
+    for (i = 0; i < markers.length; i ++) {
+      if (marker == markers[i])
+        gCurrentMarker = marker;
+    }
+    marker.openInfoWindowHtml(loc_circ(marker.getPoint().lat(), marker.getPoint().lng()));
+    document.getElementById("locCircShow").disabled = false;
+  });
+  GEvent.addListener(marker, "dragstart", function() {
+    map.closeInfoWindow();
+  });
+  GEvent.addListener(marker, "dragend", function() {
+    marker.openInfoWindowHtml(loc_circ(marker.getPoint().lat(), marker.getPoint().lng()));
+    document.getElementById("locCircShow").disabled = false;
+  });
+  GEvent.addListener(marker, "infowindowclose", function() {
+    document.getElementById("locCircShow").disabled = true;
+  });
+  map.addOverlay(marker);
+  marker.openInfoWindowHtml(loc_circ(marker.getPoint().lat(), marker.getPoint().lng()));
+  document.getElementById("locCircShow").disabled = false;
+  markers[markers.length] = marker;
+  return;
+}
+
+function clearMarkers() {
+  var i;
+  for (i = 0; i < markers.length; i ++)
+    map.removeOverlay(markers[i]);
+  map.closeInfoWindow();
+  markers = new Array();
+}
+
+function clearMarker() {
+  var i;
+  for (i = 0; i < markers.length; i ++) {
+    if (gCurrentMarker == markers[i]) {
+      map.removeOverlay(markers[i]);
+      markers.splice(i, 1);
+      document.getElementById("distValue").innerHTML = "";
+      break;
+    }
+  }
+  map.closeInfoWindow();
+}
+
+function wheelZoom(a) {
+  if (a.cancelable)
+    a.preventDefault();
+  if (a.detail || -a.wheelDelta) {
+    var latlng = new GLatLng(mouselat,mouselng);
+    if ((a.detail || -a.wheelDelta) < 0)
+      map.zoomIn(latlng, false, true);
+    else if ((a.detail || -a.wheelDelta) > 0)
+      map.zoomOut(latlng, true);
+  }
+  return false;
+}
+
+function locCircShow() {
+  locCirc = window.open();
+  locCirc.location = "../loccirc.html";
+  locCirc.name = "loccirc";
+  var a = new Array();
+  a[0] = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"";
+  a[1] = "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n<html xmlns=\"";
+  a[2] = "http://www.w3.org/1999/xhtml\">\n\n<head>\n   <meta http-equiv=\"Content-Language\" ";
+  a[3] = "content=\"en-us\" />\n   <meta http-equiv=\"Content-Type\" content=\"text/html; ";
+  a[4] = "charset=UTF-8\" />\n   <meta name=\"author\" content=\"F. Espenak\" />\n   ";
+  a[5] = "<meta name=\"keywords\" content=\"eclipse, solar\" />\n   <meta name=\"description\" ";
+  a[6] = "content=\"This is part of NASA's official eclipse home page. It plots solar eclipse ";
+  a[7] = "paths on Google Earth maps.\" />\n   \n   <!--  xxxxx BROWSER TITLE GOES HERE  -->\n   ";
+  a[8] = "<title>NASA - Google Map of Solar Eclipse<";
+  a[9] = "/title>\n<";
+  a[10] = "/head>\n<body id=\"start\">\n";
+  a[11] = "<h2>" + document.getElementsByTagName("title").item(0).innerHTML + " - Local Circumstances</h2>";
+  a[12] = document.getElementById("mapmarker").innerHTML;
+  a[13] = "\n<p>Eclipse predictions courtesy of Fred Espenak, NASA's GSFC.</p>\n";
+  a[14] = "\n<p>This page may be saved or printed.</p>\n</body>\n\n</html>";
+  var b;
+  for (b = 0; b < a.length; b++)
+    locCirc.document.write(a[b]);
+  // locCirc.document.getElementById("start").appendChild(c);
+  // locCirc.document.getElementsByTagName("body").item(0).appendChild(c);
+  locCirc.document.close();
+}
+
+function onLoad() {
+  map = new GMap2(document.getElementById("map"), {draggableCursor: 'crosshair'});
+  // Map Controls
+  map.addControl(new GLargeMapControl());
+  map.addControl(new GMapTypeControl());
+  map.addControl(new GScaleControl());
+  // map.enableScrollWheelZoom();
+  map.enableContinuousZoom();
+  GEvent.addDomListener(document.getElementById("map"), "DOMMouseScroll", wheelZoom); // Firefox
+  GEvent.addDomListener(document.getElementById("map"), "mousewheel", wheelZoom); // IE
+
+  // Event Listeners
+  //
+  // Event listeners are registered with =GEvent.addListener=. In this example,
+  // we echo the lat/lng of the center of the map after it is dragged or moved
+  // by the user.
+
+  GEvent.addListener(map, "moveend", function() {
+    var center = map.getCenter();
+    var latLngStr = "(" + latitudeToString(center.lat().toFixed(5)) + ", " + longitudeToString(center.lng().toFixed(5)) + ")";
+    document.getElementById("mapCenter").innerHTML = latLngStr;
+  });
+
+// Limit the zoom level
+ var maxZoomLevel = 13; // Set the maximum zoom level here (integer from 0 to 20 maximum zoom)
+ GEvent.addListener(map, "zoomend", function(oldZoom, newZoom) {
+   if (newZoom > maxZoomLevel)
+   {
+     var zoom = 0;
+     if (location.search.length > 1)
+     {
+       var argstr = location.search.substring(1, location.search.length);
+       var args = argstr.split("&");
+       for (var i = 0; i < args.length; i++)
+       {
+         if (args[i].substring(0, 5) == "zoom=")
+           eval(unescape(args[i]));
+       }
+       if (zoom != 1)
+         zoom = 0;
+     }
+     if (zoom == 0)
+     {
+       map.setZoom(maxZoomLevel);
+       alert("The maximum zoom level has been reached because of the finite resolution of the eclipse path data.\r\nYou can remove the limitation by appending ?zoom=1 to the URL address and reloading this page. ");
+     }
+   }
+ });
+
+  // Display lat/lng of the cursor under the map
+  GEvent.addListener(map, "mousemove", function(point) {
+    mouselat = point.lat().toFixed(6);
+    mouselng = point.lng().toFixed(6);
+    if ((gPrevLat != point.lat()) || (gPrevLng != point.lng())) {
+      var latitude  = point.lat();
+      var longitude = point.lng();
+      if (longitude < -180)
+        longitude += 360;
+      else if (longitude > 180)
+        longitude -= 360;
+      var cursor = latitudeToString(latitude.toFixed(5)) + ", " + longitudeToString(longitude.toFixed(5));
+      document.getElementById("latlngCursor").innerHTML = "(" + cursor + ")";
+      gPrevLat = point.lat();
+      gPrevLng = point.lng();
+      if (markers.length > 0) {
+      var lastpnt = markers[markers.length - 1].getLatLng();
+    var kmDist = lastpnt.distanceFrom(point);
+      kmDist = kmDist / 1000.0;
+      var miDist = kmDist * 0.621371192;
+    kmDist = kmDist.toFixed(2) + 'km (' + miDist.toFixed(2) + ' miles)'; 
+    document.getElementById("distValue").innerHTML = kmDist;
+    }
+    }
+  });
+
+//*** Greatest Eclipse marker / Map Center coordinates ***
+//*** #0V map.setCenter(new GLatLng(xx.xxxxxx,xxx.xxxxxx), 2, G_NORMAL_MAP);
+     map.setCenter(new GLatLng(  30.51945,  79.66461), 2, G_NORMAL_MAP);
+
+  map.zoomIn();
+//  document.getElementById("deltaT").innerHTML = "&Delta;T = " + elements[4] + " s";
+  document.getElementById("locCircShow").disabled = true;
+
+  var html = "";
+  var gemarkericon = new GIcon(G_DEFAULT_ICON, "../../image/gemarker.png");
+  var gemarker = new GMarker(map.getCenter(), {icon: gemarkericon, draggable: false});
+  GEvent.addListener(gemarker, "mouseover", function() {
+    gCurrentMarker = null;
+    gemarker.openInfoWindowHtml(loc_circ(gemarker.getPoint().lat(), gemarker.getPoint().lng()));
+    document.getElementById("locCircShow").disabled = false;
+  });
+  GEvent.addListener(gemarker, "infowindowclose", function() {
+    document.getElementById("locCircShow").disabled = true;
+  });
+  map.addOverlay(gemarker);
+  GEvent.addListener(map, "click", function(overlay, point) {
+    if (point) {
+      html = loc_circ(point.lat(), point.lng());
+      if (html != "") {
+        if (document.getElementById("showmarker").checked) {
+           createMarker(point);
+//           map.removeOverlay(marker);
+        }
+        else {
+           var marker = new GMarker(point);
+           map.addOverlay(marker);
+           marker.openInfoWindowHtml(html);
+           map.removeOverlay(marker);
+        }
+      }
+    }
+  });
+
+  var gdmarkericon = new GIcon(G_DEFAULT_ICON, "../../image/gdmarker.png");
+//*** Greatest Duration marker coordinates ***
+//*** #0W var gdmarker = new GMarker(new GLatLng( xxxxx, xxxxx), {icon: gdmarkericon, draggable: false});
+      var gdmarker = new GMarker(new GLatLng(    1.26844,  17.79638), {icon: gdmarkericon, draggable: false});
+  GEvent.addListener(gdmarker, "mouseover", function() {
+    gCurrentMarker = null;
+    gdmarker.openInfoWindowHtml(loc_circ(gdmarker.getPoint().lat(), gdmarker.getPoint().lng()));
+    document.getElementById("locCircShow").disabled = false;
+  });
+  GEvent.addListener(gdmarker, "infowindowclose", function() {
+    document.getElementById("locCircShow").disabled = true;
+  });
+  map.addOverlay(gdmarker);
+
+// Insert TRACK.GOO (ex SHADOW.EXE) below here
+
+/*  ++++++++++++++++++++++++++++++++++++++++++++++++++  */
+/*  ++++++++++++++++++++++++++++++++++++++++++++++++++  */
+
+//*** #0X - Input Solar Eclipse Path Data Here
+// First BLUE, Solar Eclipse of  2020 Jun 21 - Northern Limit
+var polyline = new GPolyline([
+new GLatLng(   0.93574,   17.99475),
+new GLatLng(   1.60167,   17.59680),
+new GLatLng(   1.77581,   18.00000),
+new GLatLng(   1.99332,   18.50000),
+new GLatLng(   2.21251,   19.00000),
+new GLatLng(   2.43336,   19.50000),
+new GLatLng(   2.65590,   20.00000),
+new GLatLng(   2.88010,   20.50000),
+new GLatLng(   3.10599,   21.00000),
+new GLatLng(   3.33356,   21.50000),
+new GLatLng(   3.56281,   22.00000),
+new GLatLng(   3.79374,   22.50000),
+new GLatLng(   4.02635,   23.00000),
+new GLatLng(   4.26065,   23.50000),
+new GLatLng(   4.49663,   24.00000),
+new GLatLng(   4.73428,   24.50000),
+new GLatLng(   4.97362,   25.00000),
+new GLatLng(   5.21463,   25.50000),
+new GLatLng(   5.45730,   26.00000),
+new GLatLng(   5.70165,   26.50000),
+new GLatLng(   5.94766,   27.00000),
+new GLatLng(   6.19530,   27.50000),
+new GLatLng(   6.44460,   28.00000),
+new GLatLng(   6.69553,   28.50000),
+new GLatLng(   6.94809,   29.00000),
+new GLatLng(   7.20227,   29.50000),
+new GLatLng(   7.45804,   30.00000),
+new GLatLng(   7.71539,   30.50000),
+new GLatLng(   7.97432,   31.00000),
+new GLatLng(   8.23479,   31.50000),
+new GLatLng(   8.49681,   32.00000),
+new GLatLng(   8.76033,   32.50000),
+new GLatLng(   9.02535,   33.00000),
+new GLatLng(   9.29184,   33.50000),
+new GLatLng(   9.55978,   34.00000),
+new GLatLng(   9.82913,   34.50000),
+new GLatLng(  10.09987,   35.00000),
+new GLatLng(  10.37197,   35.50000),
+new GLatLng(  10.64539,   36.00000),
+new GLatLng(  10.92009,   36.50000),
+new GLatLng(  11.19605,   37.00000),
+new GLatLng(  11.47322,   37.50000),
+new GLatLng(  11.75155,   38.00000),
+new GLatLng(  12.03102,   38.50000),
+new GLatLng(  12.31155,   39.00000),
+new GLatLng(  12.59312,   39.50000),
+new GLatLng(  12.87564,   40.00000),
+new GLatLng(  13.15909,   40.50000),
+new GLatLng(  13.44341,   41.00000),
+new GLatLng(  13.72852,   41.50000),
+new GLatLng(  14.01436,   42.00000),
+new GLatLng(  14.30087,   42.50000),
+new GLatLng(  14.58798,   43.00000),
+new GLatLng(  14.87560,   43.50000),
+new GLatLng(  15.16369,   44.00000),
+new GLatLng(  15.45214,   44.50000),
+new GLatLng(  15.74090,   45.00000),
+new GLatLng(  16.02984,   45.50000),
+new GLatLng(  16.31891,   46.00000),
+new GLatLng(  16.60802,   46.50000),
+new GLatLng(  16.89705,   47.00000),
+new GLatLng(  17.18593,   47.50000),
+new GLatLng(  17.47455,   48.00000),
+new GLatLng(  17.76282,   48.50000),
+new GLatLng(  18.05061,   49.00000),
+new GLatLng(  18.33785,   49.50000),
+new GLatLng(  18.62441,   50.00000),
+new GLatLng(  18.91018,   50.50000),
+new GLatLng(  19.19506,   51.00000),
+new GLatLng(  19.47891,   51.50000),
+new GLatLng(  19.76166,   52.00000),
+new GLatLng(  20.04316,   52.50000),
+new GLatLng(  20.32329,   53.00000),
+new GLatLng(  20.60196,   53.50000),
+new GLatLng(  20.87902,   54.00000),
+new GLatLng(  21.15437,   54.50000),
+new GLatLng(  21.42789,   55.00000),
+new GLatLng(  21.69944,   55.50000),
+new GLatLng(  21.96891,   56.00000),
+new GLatLng(  22.23619,   56.50000),
+new GLatLng(  22.50115,   57.00000),
+new GLatLng(  22.76369,   57.50000),
+new GLatLng(  23.02367,   58.00000),
+new GLatLng(  23.28099,   58.50000),
+new GLatLng(  23.53553,   59.00000),
+new GLatLng(  23.78718,   59.50000),
+new GLatLng(  24.03585,   60.00000),
+new GLatLng(  24.28140,   60.50000),
+new GLatLng(  24.52375,   61.00000),
+new GLatLng(  24.76279,   61.50000),
+new GLatLng(  24.99841,   62.00000),
+new GLatLng(  25.23053,   62.50000),
+new GLatLng(  25.45906,   63.00000),
+new GLatLng(  25.68391,   63.50000),
+new GLatLng(  25.90499,   64.00000),
+new GLatLng(  26.12221,   64.50000),
+new GLatLng(  26.33550,   65.00000),
+new GLatLng(  26.54479,   65.50000),
+new GLatLng(  26.75001,   66.00000),
+new GLatLng(  26.95109,   66.50000),
+new GLatLng(  27.14796,   67.00000),
+new GLatLng(  27.34057,   67.50000),
+new GLatLng(  27.52886,   68.00000),
+new GLatLng(  27.71278,   68.50000),
+new GLatLng(  27.89227,   69.00000),
+new GLatLng(  28.06730,   69.50000),
+new GLatLng(  28.23783,   70.00000),
+new GLatLng(  28.40381,   70.50000),
+new GLatLng(  28.56522,   71.00000),
+new GLatLng(  28.72203,   71.50000),
+new GLatLng(  28.87420,   72.00000),
+new GLatLng(  29.02170,   72.50000),
+new GLatLng(  29.16453,   73.00000),
+new GLatLng(  29.30267,   73.50000),
+new GLatLng(  29.43609,   74.00000),
+new GLatLng(  29.56478,   74.50000),
+new GLatLng(  29.68873,   75.00000),
+new GLatLng(  29.80795,   75.50000),
+new GLatLng(  29.92241,   76.00000),
+new GLatLng(  30.03212,   76.50000),
+new GLatLng(  30.13708,   77.00000),
+new GLatLng(  30.23729,   77.50000),
+new GLatLng(  30.33275,   78.00000),
+new GLatLng(  30.42346,   78.50000),
+new GLatLng(  30.50944,   79.00000),
+new GLatLng(  30.59068,   79.50000),
+new GLatLng(  30.66722,   80.00000),
+new GLatLng(  30.73904,   80.50000),
+new GLatLng(  30.80616,   81.00000),
+new GLatLng(  30.86861,   81.50000),
+new GLatLng(  30.92638,   82.00000),
+new GLatLng(  30.97951,   82.50000),
+new GLatLng(  31.02801,   83.00000),
+new GLatLng(  31.07189,   83.50000),
+new GLatLng(  31.11117,   84.00000),
+new GLatLng(  31.14588,   84.50000),
+new GLatLng(  31.17603,   85.00000),
+new GLatLng(  31.20165,   85.50000),
+new GLatLng(  31.22276,   86.00000),
+new GLatLng(  31.23939,   86.50000),
+new GLatLng(  31.25154,   87.00000),
+new GLatLng(  31.25926,   87.50000),
+new GLatLng(  31.26257,   88.00000),
+new GLatLng(  31.26148,   88.50000),
+new GLatLng(  31.25604,   89.00000),
+new GLatLng(  31.24626,   89.50000),
+new GLatLng(  31.23216,   90.00000),
+new GLatLng(  31.21379,   90.50000),
+new GLatLng(  31.19117,   91.00000),
+new GLatLng(  31.16433,   91.50000),
+new GLatLng(  31.13329,   92.00000),
+new GLatLng(  31.09809,   92.50000),
+new GLatLng(  31.05875,   93.00000),
+new GLatLng(  31.01532,   93.50000),
+new GLatLng(  30.96781,   94.00000),
+new GLatLng(  30.91627,   94.50000),
+new GLatLng(  30.86073,   95.00000),
+new GLatLng(  30.80121,   95.50000),
+new GLatLng(  30.73776,   96.00000),
+new GLatLng(  30.67040,   96.50000),
+new GLatLng(  30.59918,   97.00000),
+new GLatLng(  30.52413,   97.50000),
+new GLatLng(  30.44528,   98.00000),
+new GLatLng(  30.36268,   98.50000),
+new GLatLng(  30.27635,   99.00000),
+new GLatLng(  30.18635,   99.50000),
+new GLatLng(  30.09270,  100.00000),
+new GLatLng(  29.99545,  100.50000),
+new GLatLng(  29.89465,  101.00000),
+new GLatLng(  29.79032,  101.50000),
+new GLatLng(  29.68251,  102.00000),
+new GLatLng(  29.57127,  102.50000),
+new GLatLng(  29.45664,  103.00000),
+new GLatLng(  29.33866,  103.50000),
+new GLatLng(  29.21737,  104.00000),
+new GLatLng(  29.09283,  104.50000),
+new GLatLng(  28.96508,  105.00000),
+new GLatLng(  28.83417,  105.50000),
+new GLatLng(  28.70013,  106.00000),
+new GLatLng(  28.56304,  106.50000),
+new GLatLng(  28.42292,  107.00000),
+new GLatLng(  28.27983,  107.50000),
+new GLatLng(  28.13383,  108.00000),
+new GLatLng(  27.98495,  108.50000),
+new GLatLng(  27.83327,  109.00000),
+new GLatLng(  27.67881,  109.50000),
+new GLatLng(  27.52165,  110.00000),
+new GLatLng(  27.36183,  110.50000),
+new GLatLng(  27.19941,  111.00000),
+new GLatLng(  27.03444,  111.50000),
+new GLatLng(  26.86697,  112.00000),
+new GLatLng(  26.69706,  112.50000),
+new GLatLng(  26.52477,  113.00000),
+new GLatLng(  26.35015,  113.50000),
+new GLatLng(  26.17326,  114.00000),
+new GLatLng(  25.99416,  114.50000),
+new GLatLng(  25.81290,  115.00000),
+new GLatLng(  25.62954,  115.50000),
+new GLatLng(  25.44413,  116.00000),
+new GLatLng(  25.25674,  116.50000),
+new GLatLng(  25.06742,  117.00000),
+new GLatLng(  24.87623,  117.50000),
+new GLatLng(  24.68322,  118.00000),
+new GLatLng(  24.48846,  118.50000),
+new GLatLng(  24.29200,  119.00000),
+new GLatLng(  24.09389,  119.50000),
+new GLatLng(  23.89420,  120.00000),
+new GLatLng(  23.69298,  120.50000),
+new GLatLng(  23.49029,  121.00000),
+new GLatLng(  23.28618,  121.50000),
+new GLatLng(  23.08071,  122.00000),
+new GLatLng(  22.87393,  122.50000),
+new GLatLng(  22.66591,  123.00000),
+new GLatLng(  22.45668,  123.50000),
+new GLatLng(  22.24632,  124.00000),
+new GLatLng(  22.03487,  124.50000),
+new GLatLng(  21.82238,  125.00000),
+new GLatLng(  21.60891,  125.50000),
+new GLatLng(  21.39451,  126.00000),
+new GLatLng(  21.17923,  126.50000),
+new GLatLng(  20.96311,  127.00000),
+new GLatLng(  20.74622,  127.50000),
+new GLatLng(  20.52860,  128.00000),
+new GLatLng(  20.31029,  128.50000),
+new GLatLng(  20.09135,  129.00000),
+new GLatLng(  19.87181,  129.50000),
+new GLatLng(  19.65174,  130.00000),
+new GLatLng(  19.43116,  130.50000),
+new GLatLng(  19.21014,  131.00000),
+new GLatLng(  18.98870,  131.50000),
+new GLatLng(  18.76689,  132.00000),
+new GLatLng(  18.54475,  132.50000),
+new GLatLng(  18.32234,  133.00000),
+new GLatLng(  18.09967,  133.50000),
+new GLatLng(  17.87680,  134.00000),
+new GLatLng(  17.65376,  134.50000),
+new GLatLng(  17.43058,  135.00000),
+new GLatLng(  17.20732,  135.50000),
+new GLatLng(  16.98399,  136.00000),
+new GLatLng(  16.76064,  136.50000),
+new GLatLng(  16.53730,  137.00000),
+new GLatLng(  16.31400,  137.50000),
+new GLatLng(  16.09077,  138.00000),
+new GLatLng(  15.86766,  138.50000),
+new GLatLng(  15.64467,  139.00000),
+new GLatLng(  15.42186,  139.50000),
+new GLatLng(  15.19923,  140.00000),
+new GLatLng(  14.97684,  140.50000),
+new GLatLng(  14.75468,  141.00000),
+new GLatLng(  14.53281,  141.50000),
+new GLatLng(  14.31124,  142.00000),
+new GLatLng(  14.08999,  142.50000),
+new GLatLng(  13.86910,  143.00000),
+new GLatLng(  13.64857,  143.50000),
+new GLatLng(  13.42845,  144.00000),
+new GLatLng(  13.20874,  144.50000),
+new GLatLng(  12.98947,  145.00000),
+new GLatLng(  12.77066,  145.50000),
+new GLatLng(  12.55233,  146.00000),
+new GLatLng(  12.33450,  146.50000),
+new GLatLng(  11.77989,  147.77814),
+new GLatLng(  11.16129,  147.39532)],
+"#3300FF", 2, 0.65, {clickable: false});
+map.addOverlay(polyline);
+
+// Second BLUE, Solar Eclipse of  2020 Jun 21 - Southern Limit
+var polyline = new GPolyline([
+new GLatLng(   0.93574,   17.99475),
+new GLatLng(   0.93777,   18.00000),
+new GLatLng(   1.15973,   18.50000),
+new GLatLng(   1.38339,   19.00000),
+new GLatLng(   1.60877,   19.50000),
+new GLatLng(   1.83586,   20.00000),
+new GLatLng(   2.06469,   20.50000),
+new GLatLng(   2.29523,   21.00000),
+new GLatLng(   2.52751,   21.50000),
+new GLatLng(   2.76150,   22.00000),
+new GLatLng(   2.99723,   22.50000),
+new GLatLng(   3.23470,   23.00000),
+new GLatLng(   3.47389,   23.50000),
+new GLatLng(   3.71481,   24.00000),
+new GLatLng(   3.95747,   24.50000),
+new GLatLng(   4.20184,   25.00000),
+new GLatLng(   4.44795,   25.50000),
+new GLatLng(   4.69578,   26.00000),
+new GLatLng(   4.94533,   26.50000),
+new GLatLng(   5.19657,   27.00000),
+new GLatLng(   5.44954,   27.50000),
+new GLatLng(   5.70420,   28.00000),
+new GLatLng(   5.96053,   28.50000),
+new GLatLng(   6.21855,   29.00000),
+new GLatLng(   6.47824,   29.50000),
+new GLatLng(   6.73958,   30.00000),
+new GLatLng(   7.00256,   30.50000),
+new GLatLng(   7.26717,   31.00000),
+new GLatLng(   7.53339,   31.50000),
+new GLatLng(   7.80119,   32.00000),
+new GLatLng(   8.07057,   32.50000),
+new GLatLng(   8.34149,   33.00000),
+new GLatLng(   8.61395,   33.50000),
+new GLatLng(   8.88789,   34.00000),
+new GLatLng(   9.16332,   34.50000),
+new GLatLng(   9.44018,   35.00000),
+new GLatLng(   9.71847,   35.50000),
+new GLatLng(   9.99811,   36.00000),
+new GLatLng(  10.27912,   36.50000),
+new GLatLng(  10.56141,   37.00000),
+new GLatLng(  10.84497,   37.50000),
+new GLatLng(  11.12976,   38.00000),
+new GLatLng(  11.41572,   38.50000),
+new GLatLng(  11.70279,   39.00000),
+new GLatLng(  11.99095,   39.50000),
+new GLatLng(  12.28012,   40.00000),
+new GLatLng(  12.57026,   40.50000),
+new GLatLng(  12.86131,   41.00000),
+new GLatLng(  13.15318,   41.50000),
+new GLatLng(  13.44584,   42.00000),
+new GLatLng(  13.73921,   42.50000),
+new GLatLng(  14.03321,   43.00000),
+new GLatLng(  14.32778,   43.50000),
+new GLatLng(  14.62282,   44.00000),
+new GLatLng(  14.91827,   44.50000),
+new GLatLng(  15.21404,   45.00000),
+new GLatLng(  15.51002,   45.50000),
+new GLatLng(  15.80617,   46.00000),
+new GLatLng(  16.10235,   46.50000),
+new GLatLng(  16.39847,   47.00000),
+new GLatLng(  16.69446,   47.50000),
+new GLatLng(  16.99019,   48.00000),
+new GLatLng(  17.28556,   48.50000),
+new GLatLng(  17.58048,   49.00000),
+new GLatLng(  17.87482,   49.50000),
+new GLatLng(  18.16847,   50.00000),
+new GLatLng(  18.46134,   50.50000),
+new GLatLng(  18.75328,   51.00000),
+new GLatLng(  19.04417,   51.50000),
+new GLatLng(  19.33394,   52.00000),
+new GLatLng(  19.62241,   52.50000),
+new GLatLng(  19.90949,   53.00000),
+new GLatLng(  20.19504,   53.50000),
+new GLatLng(  20.47896,   54.00000),
+new GLatLng(  20.76110,   54.50000),
+new GLatLng(  21.04135,   55.00000),
+new GLatLng(  21.31958,   55.50000),
+new GLatLng(  21.59566,   56.00000),
+new GLatLng(  21.86947,   56.50000),
+new GLatLng(  22.14090,   57.00000),
+new GLatLng(  22.40980,   57.50000),
+new GLatLng(  22.67607,   58.00000),
+new GLatLng(  22.93960,   58.50000),
+new GLatLng(  23.20024,   59.00000),
+new GLatLng(  23.45789,   59.50000),
+new GLatLng(  23.71244,   60.00000),
+new GLatLng(  23.96379,   60.50000),
+new GLatLng(  24.21182,   61.00000),
+new GLatLng(  24.45642,   61.50000),
+new GLatLng(  24.69750,   62.00000),
+new GLatLng(  24.93494,   62.50000),
+new GLatLng(  25.16867,   63.00000),
+new GLatLng(  25.39861,   63.50000),
+new GLatLng(  25.62463,   64.00000),
+new GLatLng(  25.84666,   64.50000),
+new GLatLng(  26.06466,   65.00000),
+new GLatLng(  26.27850,   65.50000),
+new GLatLng(  26.48812,   66.00000),
+new GLatLng(  26.69349,   66.50000),
+new GLatLng(  26.89450,   67.00000),
+new GLatLng(  27.09111,   67.50000),
+new GLatLng(  27.28327,   68.00000),
+new GLatLng(  27.47092,   68.50000),
+new GLatLng(  27.65401,   69.00000),
+new GLatLng(  27.83249,   69.50000),
+new GLatLng(  28.00633,   70.00000),
+new GLatLng(  28.17549,   70.50000),
+new GLatLng(  28.33993,   71.00000),
+new GLatLng(  28.49964,   71.50000),
+new GLatLng(  28.65456,   72.00000),
+new GLatLng(  28.80469,   72.50000),
+new GLatLng(  28.95002,   73.00000),
+new GLatLng(  29.09050,   73.50000),
+new GLatLng(  29.22614,   74.00000),
+new GLatLng(  29.35692,   74.50000),
+new GLatLng(  29.48283,   75.00000),
+new GLatLng(  29.60387,   75.50000),
+new GLatLng(  29.72003,   76.00000),
+new GLatLng(  29.83131,   76.50000),
+new GLatLng(  29.93770,   77.00000),
+new GLatLng(  30.03922,   77.50000),
+new GLatLng(  30.13587,   78.00000),
+new GLatLng(  30.22765,   78.50000),
+new GLatLng(  30.31457,   79.00000),
+new GLatLng(  30.39664,   79.50000),
+new GLatLng(  30.47388,   80.00000),
+new GLatLng(  30.54628,   80.50000),
+new GLatLng(  30.61388,   81.00000),
+new GLatLng(  30.67667,   81.50000),
+new GLatLng(  30.73468,   82.00000),
+new GLatLng(  30.78793,   82.50000),
+new GLatLng(  30.83643,   83.00000),
+new GLatLng(  30.88021,   83.50000),
+new GLatLng(  30.91928,   84.00000),
+new GLatLng(  30.95366,   84.50000),
+new GLatLng(  30.98337,   85.00000),
+new GLatLng(  31.00844,   85.50000),
+new GLatLng(  31.02890,   86.00000),
+new GLatLng(  31.04476,   86.50000),
+new GLatLng(  31.05605,   87.00000),
+new GLatLng(  31.06279,   87.50000),
+new GLatLng(  31.06501,   88.00000),
+new GLatLng(  31.06274,   88.50000),
+new GLatLng(  31.05600,   89.00000),
+new GLatLng(  31.04482,   89.50000),
+new GLatLng(  31.02922,   90.00000),
+new GLatLng(  31.00925,   90.50000),
+new GLatLng(  30.98492,   91.00000),
+new GLatLng(  30.95626,   91.50000),
+new GLatLng(  30.92332,   92.00000),
+new GLatLng(  30.88610,   92.50000),
+new GLatLng(  30.84465,   93.00000),
+new GLatLng(  30.79900,   93.50000),
+new GLatLng(  30.74918,   94.00000),
+new GLatLng(  30.69522,   94.50000),
+new GLatLng(  30.63716,   95.00000),
+new GLatLng(  30.57503,   95.50000),
+new GLatLng(  30.50886,   96.00000),
+new GLatLng(  30.43869,   96.50000),
+new GLatLng(  30.36456,   97.00000),
+new GLatLng(  30.28650,   97.50000),
+new GLatLng(  30.20455,   98.00000),
+new GLatLng(  30.11874,   98.50000),
+new GLatLng(  30.02912,   99.00000),
+new GLatLng(  29.93572,   99.50000),
+new GLatLng(  29.83859,  100.00000),
+new GLatLng(  29.73776,  100.50000),
+new GLatLng(  29.63328,  101.00000),
+new GLatLng(  29.52518,  101.50000),
+new GLatLng(  29.41351,  102.00000),
+new GLatLng(  29.29832,  102.50000),
+new GLatLng(  29.17965,  103.00000),
+new GLatLng(  29.05754,  103.50000),
+new GLatLng(  28.93203,  104.00000),
+new GLatLng(  28.80319,  104.50000),
+new GLatLng(  28.67105,  105.00000),
+new GLatLng(  28.53565,  105.50000),
+new GLatLng(  28.39706,  106.00000),
+new GLatLng(  28.25532,  106.50000),
+new GLatLng(  28.11048,  107.00000),
+new GLatLng(  27.96259,  107.50000),
+new GLatLng(  27.81171,  108.00000),
+new GLatLng(  27.65788,  108.50000),
+new GLatLng(  27.50116,  109.00000),
+new GLatLng(  27.34161,  109.50000),
+new GLatLng(  27.17927,  110.00000),
+new GLatLng(  27.01421,  110.50000),
+new GLatLng(  26.84647,  111.00000),
+new GLatLng(  26.67612,  111.50000),
+new GLatLng(  26.50322,  112.00000),
+new GLatLng(  26.32780,  112.50000),
+new GLatLng(  26.14995,  113.00000),
+new GLatLng(  25.96972,  113.50000),
+new GLatLng(  25.78716,  114.00000),
+new GLatLng(  25.60233,  114.50000),
+new GLatLng(  25.41529,  115.00000),
+new GLatLng(  25.22610,  115.50000),
+new GLatLng(  25.03482,  116.00000),
+new GLatLng(  24.84151,  116.50000),
+new GLatLng(  24.64622,  117.00000),
+new GLatLng(  24.44903,  117.50000),
+new GLatLng(  24.24999,  118.00000),
+new GLatLng(  24.04915,  118.50000),
+new GLatLng(  23.84659,  119.00000),
+new GLatLng(  23.64235,  119.50000),
+new GLatLng(  23.43649,  120.00000),
+new GLatLng(  23.22908,  120.50000),
+new GLatLng(  23.02018,  121.00000),
+new GLatLng(  22.80984,  121.50000),
+new GLatLng(  22.59811,  122.00000),
+new GLatLng(  22.38507,  122.50000),
+new GLatLng(  22.17076,  123.00000),
+new GLatLng(  21.95525,  123.50000),
+new GLatLng(  21.73858,  124.00000),
+new GLatLng(  21.52081,  124.50000),
+new GLatLng(  21.30201,  125.00000),
+new GLatLng(  21.08222,  125.50000),
+new GLatLng(  20.86149,  126.00000),
+new GLatLng(  20.63989,  126.50000),
+new GLatLng(  20.41745,  127.00000),
+new GLatLng(  20.19424,  127.50000),
+new GLatLng(  19.97031,  128.00000),
+new GLatLng(  19.74570,  128.50000),
+new GLatLng(  19.52047,  129.00000),
+new GLatLng(  19.29465,  129.50000),
+new GLatLng(  19.06830,  130.00000),
+new GLatLng(  18.84148,  130.50000),
+new GLatLng(  18.61421,  131.00000),
+new GLatLng(  18.38655,  131.50000),
+new GLatLng(  18.15855,  132.00000),
+new GLatLng(  17.93023,  132.50000),
+new GLatLng(  17.70166,  133.00000),
+new GLatLng(  17.47285,  133.50000),
+new GLatLng(  17.24387,  134.00000),
+new GLatLng(  17.01474,  134.50000),
+new GLatLng(  16.78551,  135.00000),
+new GLatLng(  16.55621,  135.50000),
+new GLatLng(  16.32689,  136.00000),
+new GLatLng(  16.09756,  136.50000),
+new GLatLng(  15.86828,  137.00000),
+new GLatLng(  15.63907,  137.50000),
+new GLatLng(  15.40997,  138.00000),
+new GLatLng(  15.18100,  138.50000),
+new GLatLng(  14.95220,  139.00000),
+new GLatLng(  14.72361,  139.50000),
+new GLatLng(  14.49524,  140.00000),
+new GLatLng(  14.26713,  140.50000),
+new GLatLng(  14.03931,  141.00000),
+new GLatLng(  13.81180,  141.50000),
+new GLatLng(  13.58462,  142.00000),
+new GLatLng(  13.35781,  142.50000),
+new GLatLng(  13.13140,  143.00000),
+new GLatLng(  12.90538,  143.50000),
+new GLatLng(  12.67981,  144.00000),
+new GLatLng(  12.45469,  144.50000),
+new GLatLng(  12.23005,  145.00000),
+new GLatLng(  12.00591,  145.50000),
+new GLatLng(  11.78228,  146.00000),
+new GLatLng(  11.55920,  146.50000),
+new GLatLng(  11.16129,  147.39532)],
+"#3300FF", 2, 0.65, {clickable: false});
+map.addOverlay(polyline);
+
+// First RED, Solar Eclipse of  2020 Jun 21 - Central Line
+var polyline = new GPolyline([
+new GLatLng(   1.26844,   17.79639),
+new GLatLng(   1.26844,   17.79638),
+new GLatLng(   1.35740,   18.00000),
+new GLatLng(   1.57715,   18.50000),
+new GLatLng(   1.79858,   19.00000),
+new GLatLng(   2.02170,   19.50000),
+new GLatLng(   2.24653,   20.00000),
+new GLatLng(   2.47304,   20.50000),
+new GLatLng(   2.70126,   21.00000),
+new GLatLng(   2.93118,   21.50000),
+new GLatLng(   3.16280,   22.00000),
+new GLatLng(   3.39614,   22.50000),
+new GLatLng(   3.63119,   23.00000),
+new GLatLng(   3.86794,   23.50000),
+new GLatLng(   4.10639,   24.00000),
+new GLatLng(   4.34654,   24.50000),
+new GLatLng(   4.58841,   25.00000),
+new GLatLng(   4.83197,   25.50000),
+new GLatLng(   5.07723,   26.00000),
+new GLatLng(   5.32418,   26.50000),
+new GLatLng(   5.57280,   27.00000),
+new GLatLng(   5.82311,   27.50000),
+new GLatLng(   6.07509,   28.00000),
+new GLatLng(   6.32873,   28.50000),
+new GLatLng(   6.58402,   29.00000),
+new GLatLng(   6.84095,   29.50000),
+new GLatLng(   7.09951,   30.00000),
+new GLatLng(   7.35967,   30.50000),
+new GLatLng(   7.62145,   31.00000),
+new GLatLng(   7.88479,   31.50000),
+new GLatLng(   8.14971,   32.00000),
+new GLatLng(   8.41616,   32.50000),
+new GLatLng(   8.68413,   33.00000),
+new GLatLng(   8.95360,   33.50000),
+new GLatLng(   9.22455,   34.00000),
+new GLatLng(   9.49693,   34.50000),
+new GLatLng(   9.77074,   35.00000),
+new GLatLng(  10.04592,   35.50000),
+new GLatLng(  10.32245,   36.00000),
+new GLatLng(  10.60029,   36.50000),
+new GLatLng(  10.87943,   37.00000),
+new GLatLng(  11.15979,   37.50000),
+new GLatLng(  11.44134,   38.00000),
+new GLatLng(  11.72405,   38.50000),
+new GLatLng(  12.00785,   39.00000),
+new GLatLng(  12.29270,   39.50000),
+new GLatLng(  12.57856,   40.00000),
+new GLatLng(  12.86535,   40.50000),
+new GLatLng(  13.15302,   41.00000),
+new GLatLng(  13.44151,   41.50000),
+new GLatLng(  13.73075,   42.00000),
+new GLatLng(  14.02068,   42.50000),
+new GLatLng(  14.31124,   43.00000),
+new GLatLng(  14.60232,   43.50000),
+new GLatLng(  14.89388,   44.00000),
+new GLatLng(  15.18582,   44.50000),
+new GLatLng(  15.47807,   45.00000),
+new GLatLng(  15.77053,   45.50000),
+new GLatLng(  16.06312,   46.00000),
+new GLatLng(  16.35575,   46.50000),
+new GLatLng(  16.64832,   47.00000),
+new GLatLng(  16.94074,   47.50000),
+new GLatLng(  17.23291,   48.00000),
+new GLatLng(  17.52471,   48.50000),
+new GLatLng(  17.81606,   49.00000),
+new GLatLng(  18.10685,   49.50000),
+new GLatLng(  18.39694,   50.00000),
+new GLatLng(  18.68624,   50.50000),
+new GLatLng(  18.97463,   51.00000),
+new GLatLng(  19.26200,   51.50000),
+new GLatLng(  19.54824,   52.00000),
+new GLatLng(  19.83322,   52.50000),
+new GLatLng(  20.11681,   53.00000),
+new GLatLng(  20.39891,   53.50000),
+new GLatLng(  20.67938,   54.00000),
+new GLatLng(  20.95811,   54.50000),
+new GLatLng(  21.23498,   55.00000),
+new GLatLng(  21.50985,   55.50000),
+new GLatLng(  21.78263,   56.00000),
+new GLatLng(  22.05315,   56.50000),
+new GLatLng(  22.32133,   57.00000),
+new GLatLng(  22.58703,   57.50000),
+new GLatLng(  22.85015,   58.00000),
+new GLatLng(  23.11055,   58.50000),
+new GLatLng(  23.36814,   59.00000),
+new GLatLng(  23.62277,   59.50000),
+new GLatLng(  23.87437,   60.00000),
+new GLatLng(  24.12280,   60.50000),
+new GLatLng(  24.36798,   61.00000),
+new GLatLng(  24.60978,   61.50000),
+new GLatLng(  24.84812,   62.00000),
+new GLatLng(  25.08290,   62.50000),
+new GLatLng(  25.31401,   63.00000),
+new GLatLng(  25.54139,   63.50000),
+new GLatLng(  25.76494,   64.00000),
+new GLatLng(  25.98455,   64.50000),
+new GLatLng(  26.20019,   65.00000),
+new GLatLng(  26.41174,   65.50000),
+new GLatLng(  26.61916,   66.00000),
+new GLatLng(  26.82236,   66.50000),
+new GLatLng(  27.02130,   67.00000),
+new GLatLng(  27.21591,   67.50000),
+new GLatLng(  27.40611,   68.00000),
+new GLatLng(  27.59189,   68.50000),
+new GLatLng(  27.77318,   69.00000),
+new GLatLng(  27.94993,   69.50000),
+new GLatLng(  28.12210,   70.00000),
+new GLatLng(  28.28967,   70.50000),
+new GLatLng(  28.45259,   71.00000),
+new GLatLng(  28.61084,   71.50000),
+new GLatLng(  28.76438,   72.00000),
+new GLatLng(  28.91320,   72.50000),
+new GLatLng(  29.05726,   73.00000),
+new GLatLng(  29.19657,   73.50000),
+new GLatLng(  29.33109,   74.00000),
+new GLatLng(  29.46082,   74.50000),
+new GLatLng(  29.58575,   75.00000),
+new GLatLng(  29.70587,   75.50000),
+new GLatLng(  29.82118,   76.00000),
+new GLatLng(  29.93167,   76.50000),
+new GLatLng(  30.03735,   77.00000),
+new GLatLng(  30.13821,   77.50000),
+new GLatLng(  30.23426,   78.00000),
+new GLatLng(  30.32550,   78.50000),
+new GLatLng(  30.41195,   79.00000),
+new GLatLng(  30.49361,   79.50000),
+new GLatLng(  30.51945,   79.66461),
+new GLatLng(  30.57049,   80.00000),
+new GLatLng(  30.64260,   80.50000),
+new GLatLng(  30.70996,   81.00000),
+new GLatLng(  30.77258,   81.50000),
+new GLatLng(  30.83047,   82.00000),
+new GLatLng(  30.88366,   82.50000),
+new GLatLng(  30.93216,   83.00000),
+new GLatLng(  30.97598,   83.50000),
+new GLatLng(  31.01516,   84.00000),
+new GLatLng(  31.04970,   84.50000),
+new GLatLng(  31.07964,   85.00000),
+new GLatLng(  31.10498,   85.50000),
+new GLatLng(  31.12576,   86.00000),
+new GLatLng(  31.14201,   86.50000),
+new GLatLng(  31.15373,   87.00000),
+new GLatLng(  31.16096,   87.50000),
+new GLatLng(  31.16372,   88.00000),
+new GLatLng(  31.16205,   88.50000),
+new GLatLng(  31.15595,   89.00000),
+new GLatLng(  31.14547,   89.50000),
+new GLatLng(  31.13063,   90.00000),
+new GLatLng(  31.11146,   90.50000),
+new GLatLng(  31.08799,   91.00000),
+new GLatLng(  31.06024,   91.50000),
+new GLatLng(  31.02825,   92.00000),
+new GLatLng(  30.99204,   92.50000),
+new GLatLng(  30.95165,   93.00000),
+new GLatLng(  30.90711,   93.50000),
+new GLatLng(  30.85845,   94.00000),
+new GLatLng(  30.80571,   94.50000),
+new GLatLng(  30.74891,   95.00000),
+new GLatLng(  30.68809,   95.50000),
+new GLatLng(  30.62328,   96.00000),
+new GLatLng(  30.55452,   96.50000),
+new GLatLng(  30.48185,   97.00000),
+new GLatLng(  30.40529,   97.50000),
+new GLatLng(  30.32490,   98.00000),
+new GLatLng(  30.24070,   98.50000),
+new GLatLng(  30.15273,   99.00000),
+new GLatLng(  30.06103,   99.50000),
+new GLatLng(  29.96565,  100.00000),
+new GLatLng(  29.86662,  100.50000),
+new GLatLng(  29.76397,  101.00000),
+new GLatLng(  29.65777,  101.50000),
+new GLatLng(  29.54804,  102.00000),
+new GLatLng(  29.43483,  102.50000),
+new GLatLng(  29.31818,  103.00000),
+new GLatLng(  29.19814,  103.50000),
+new GLatLng(  29.07475,  104.00000),
+new GLatLng(  28.94807,  104.50000),
+new GLatLng(  28.81813,  105.00000),
+new GLatLng(  28.68498,  105.50000),
+new GLatLng(  28.54868,  106.00000),
+new GLatLng(  28.40927,  106.50000),
+new GLatLng(  28.26680,  107.00000),
+new GLatLng(  28.12132,  107.50000),
+new GLatLng(  27.97288,  108.00000),
+new GLatLng(  27.82154,  108.50000),
+new GLatLng(  27.66734,  109.00000),
+new GLatLng(  27.51035,  109.50000),
+new GLatLng(  27.35061,  110.00000),
+new GLatLng(  27.18817,  110.50000),
+new GLatLng(  27.02311,  111.00000),
+new GLatLng(  26.85545,  111.50000),
+new GLatLng(  26.68527,  112.00000),
+new GLatLng(  26.51263,  112.50000),
+new GLatLng(  26.33757,  113.00000),
+new GLatLng(  26.16015,  113.50000),
+new GLatLng(  25.98043,  114.00000),
+new GLatLng(  25.79848,  114.50000),
+new GLatLng(  25.61433,  115.00000),
+new GLatLng(  25.42807,  115.50000),
+new GLatLng(  25.23974,  116.00000),
+new GLatLng(  25.04939,  116.50000),
+new GLatLng(  24.85710,  117.00000),
+new GLatLng(  24.66292,  117.50000),
+new GLatLng(  24.46691,  118.00000),
+new GLatLng(  24.26912,  118.50000),
+new GLatLng(  24.06961,  119.00000),
+new GLatLng(  23.86845,  119.50000),
+new GLatLng(  23.66569,  120.00000),
+new GLatLng(  23.46138,  120.50000),
+new GLatLng(  23.25559,  121.00000),
+new GLatLng(  23.04838,  121.50000),
+new GLatLng(  22.83979,  122.00000),
+new GLatLng(  22.62989,  122.50000),
+new GLatLng(  22.41874,  123.00000),
+new GLatLng(  22.20638,  123.50000),
+new GLatLng(  21.99287,  124.00000),
+new GLatLng(  21.77827,  124.50000),
+new GLatLng(  21.56263,  125.00000),
+new GLatLng(  21.34601,  125.50000),
+new GLatLng(  21.12846,  126.00000),
+new GLatLng(  20.91002,  126.50000),
+new GLatLng(  20.69076,  127.00000),
+new GLatLng(  20.47071,  127.50000),
+new GLatLng(  20.24994,  128.00000),
+new GLatLng(  20.02849,  128.50000),
+new GLatLng(  19.80640,  129.00000),
+new GLatLng(  19.58374,  129.50000),
+new GLatLng(  19.36053,  130.00000),
+new GLatLng(  19.13684,  130.50000),
+new GLatLng(  18.91270,  131.00000),
+new GLatLng(  18.68816,  131.50000),
+new GLatLng(  18.46325,  132.00000),
+new GLatLng(  18.23804,  132.50000),
+new GLatLng(  18.01254,  133.00000),
+new GLatLng(  17.78681,  133.50000),
+new GLatLng(  17.56089,  134.00000),
+new GLatLng(  17.33481,  134.50000),
+new GLatLng(  17.10861,  135.00000),
+new GLatLng(  16.88234,  135.50000),
+new GLatLng(  16.65602,  136.00000),
+new GLatLng(  16.42968,  136.50000),
+new GLatLng(  16.20337,  137.00000),
+new GLatLng(  15.97712,  137.50000),
+new GLatLng(  15.75096,  138.00000),
+new GLatLng(  15.52492,  138.50000),
+new GLatLng(  15.29903,  139.00000),
+new GLatLng(  15.07333,  139.50000),
+new GLatLng(  14.84784,  140.00000),
+new GLatLng(  14.62259,  140.50000),
+new GLatLng(  14.39760,  141.00000),
+new GLatLng(  14.17291,  141.50000),
+new GLatLng(  13.94854,  142.00000),
+new GLatLng(  13.72451,  142.50000),
+new GLatLng(  13.50085,  143.00000),
+new GLatLng(  13.27759,  143.50000),
+new GLatLng(  13.05474,  144.00000),
+new GLatLng(  12.83232,  144.50000),
+new GLatLng(  12.61037,  145.00000),
+new GLatLng(  12.38889,  145.50000),
+new GLatLng(  12.16792,  146.00000),
+new GLatLng(  11.94746,  146.50000),
+new GLatLng(  11.47037,  147.58630)],
+"#FF0000", 2, 0.65, {clickable: false});
+map.addOverlay(polyline);
+
+
+// YELLOW Solar Eclipse Time Line:  4.8333  1
+var polyline = new GPolyline([
+new GLatLng(  5.12838,   25.32147),
+new GLatLng(  5.06395,   26.73651)],
+"#FFFF00", 3, 0.65, {clickable: false});
+map.addOverlay(polyline);
+
+// YELLOW Solar Eclipse Time Line:  5.0000  2
+var polyline = new GPolyline([
+new GLatLng( 12.10495,   38.63196),
+new GLatLng( 11.80947,   39.18530)],
+"#FFFF00", 3, 0.65, {clickable: false});
+map.addOverlay(polyline);
+
+// YELLOW Solar Eclipse Time Line:  5.1667  3
+var polyline = new GPolyline([
+new GLatLng( 16.03657,   45.51166),
+new GLatLng( 15.74763,   45.90118)],
+"#FFFF00", 3, 0.65, {clickable: false});
+map.addOverlay(polyline);
+
+// YELLOW Solar Eclipse Time Line:  5.3333  4
+var polyline = new GPolyline([
+new GLatLng( 19.03601,   50.72064),
+new GLatLng( 18.76502,   51.02014)],
+"#FFFF00", 3, 0.65, {clickable: false});
+map.addOverlay(polyline);
+
+// YELLOW Solar Eclipse Time Line:  5.5000  5
+var polyline = new GPolyline([
+new GLatLng( 21.49211,   55.11792),
+new GLatLng( 21.23956,   55.35583)],
+"#FFFF00", 3, 0.65, {clickable: false});
+map.addOverlay(polyline);
+
+// YELLOW Solar Eclipse Time Line:  5.6667  6
+var polyline = new GPolyline([
+new GLatLng( 23.56158,   59.05145),
+new GLatLng( 23.32581,   59.24292)],
+"#FFFF00", 3, 0.65, {clickable: false});
+map.addOverlay(polyline);
+
+// YELLOW Solar Eclipse Time Line:  5.8333  7
+var polyline = new GPolyline([
+new GLatLng( 25.32419,   62.70392),
+new GLatLng( 25.10295,   62.85858)],
+"#FFFF00", 3, 0.65, {clickable: false});
+map.addOverlay(polyline);
+
+// YELLOW Solar Eclipse Time Line:  6.0000  8
+var polyline = new GPolyline([
+new GLatLng( 26.82525,   66.18585),
+new GLatLng( 26.61607,   66.31024)],
+"#FFFF00", 3, 0.65, {clickable: false});
+map.addOverlay(polyline);
+
+// YELLOW Solar Eclipse Time Line:  6.1667  9
+var polyline = new GPolyline([
+new GLatLng( 28.09173,   69.57080),
+new GLatLng( 27.89203,   69.66974)],
+"#FFFF00", 3, 0.65, {clickable: false});
+map.addOverlay(polyline);
+
+// YELLOW Solar Eclipse Time Line:  6.3333 10
+var polyline = new GPolyline([
+new GLatLng( 29.13954,   72.91132),
+new GLatLng( 28.94664,   72.98822)],
+"#FFFF00", 3, 0.65, {clickable: false});
+map.addOverlay(polyline);
+
+// YELLOW Solar Eclipse Time Line:  6.5000 11
+var polyline = new GPolyline([
+new GLatLng( 29.97728,   76.24731),
+new GLatLng( 29.78838,   76.30457)],
+"#FFFF00", 3, 0.65, {clickable: false});
+map.addOverlay(polyline);
+
+// YELLOW Solar Eclipse Time Line:  6.6667 12
+var polyline = new GPolyline([
+new GLatLng( 30.60813,   79.61127),
+new GLatLng( 30.42035,   79.65015)],
+"#FFFF00", 3, 0.65, {clickable: false});
+map.addOverlay(polyline);
+
+// YELLOW Solar Eclipse Time Line:  6.8333 13
+var polyline = new GPolyline([
+new GLatLng( 31.03090,   83.03143),
+new GLatLng( 30.84123,   83.05225)],
+"#FFFF00", 3, 0.65, {clickable: false});
+map.addOverlay(polyline);
+
+// YELLOW Solar Eclipse Time Line:  7.0000 14
+var polyline = new GPolyline([
+new GLatLng( 31.24038,   86.53491),
+new GLatLng( 31.04575,   86.53705)],
+"#FFFF00", 3, 0.65, {clickable: false});
+map.addOverlay(polyline);
+
+// YELLOW Solar Eclipse Time Line:  7.1667 15
+var polyline = new GPolyline([
+new GLatLng( 31.22708,   90.15051),
+new GLatLng( 31.02437,   90.13214)],
+"#FFFF00", 3, 0.65, {clickable: false});
+map.addOverlay(polyline);
+
+// YELLOW Solar Eclipse Time Line:  7.3333 16
+var polyline = new GPolyline([
+new GLatLng( 30.97640,   93.91266),
+new GLatLng( 30.76247,   93.87061)],
+"#FFFF00", 3, 0.65, {clickable: false});
+map.addOverlay(polyline);
+
+// YELLOW Solar Eclipse Time Line:  7.5000 17
+var polyline = new GPolyline([
+new GLatLng( 30.46675,   97.86621),
+new GLatLng( 30.23849,   97.79578)],
+"#FFFF00", 3, 0.65, {clickable: false});
+map.addOverlay(polyline);
+
+// YELLOW Solar Eclipse Time Line:  7.6667 18
+var polyline = new GPolyline([
+new GLatLng( 29.66589,  102.07568),
+new GLatLng( 29.42031,  101.97003)],
+"#FFFF00", 3, 0.65, {clickable: false});
+map.addOverlay(polyline);
+
+// YELLOW Solar Eclipse Time Line:  7.8333 19
+var polyline = new GPolyline([
+new GLatLng( 28.52369,  106.64148),
+new GLatLng( 28.25803,  106.49054)],
+"#FFFF00", 3, 0.65, {clickable: false});
+map.addOverlay(polyline);
+
+// YELLOW Solar Eclipse Time Line:  8.0000 20
+var polyline = new GPolyline([
+new GLatLng( 26.95594,  111.73529),
+new GLatLng( 26.66813,  111.52325)],
+"#FFFF00", 3, 0.65, {clickable: false});
+map.addOverlay(polyline);
+
+// YELLOW Solar Eclipse Time Line:  8.1667 21
+var polyline = new GPolyline([
+new GLatLng( 24.80185,  117.69324),
+new GLatLng( 24.49202,  117.39142)],
+"#FFFF00", 3, 0.65, {clickable: false});
+map.addOverlay(polyline);
+
+// YELLOW Solar Eclipse Time Line:  8.3333 22
+var polyline = new GPolyline([
+new GLatLng( 21.66998,  125.35718),
+new GLatLng( 21.34875,  124.89337)],
+"#FFFF00", 3, 0.65, {clickable: false});
+map.addOverlay(polyline);
+
+// YELLOW Solar Eclipse Time Line:  8.5000 23
+var polyline = new GPolyline([
+new GLatLng( 15.52424,  139.27026),
+new GLatLng( 15.39682,  138.02869)],
+"#FFFF00", 3, 0.65, {clickable: false});
+map.addOverlay(polyline);
+
+<!--  ++++++++++++++++++++++++++++++++++++++++++++++++++  -->
+<!--  ++++++++++++++++++++++++++++++++++++++++++++++++++  -->
+
+
+<!--  ++++++++++++++++++++++++++++++++++++++++++++++++++  -->
+<!--  ++++++++++++++++++++++++++++++++++++++++++++++++++  -->
+
+/*  ++++++++++++++++++++++++++++++++++++++++++++++++++  */
+/*  ++++++++++++++++++++++++++++++++++++++++++++++++++  */
+
+// Insert TRACK.GOO (ex SHADOW.EXE) above here
+
+}
+
+//-->//]]>
+</script>

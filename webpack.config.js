@@ -39,7 +39,7 @@ module.exports = (env, argv) => {
   } = Object.assign(defaultSetting, argv);
 
   const htmlTemplate = new HtmlWebpackPlugin({
-    title: 'Moon & Tide Simulator',
+    title: 'Eclipse Map',
     template: `templates/${page}.ejs`,
   })
 
@@ -50,7 +50,7 @@ module.exports = (env, argv) => {
       app: './index.js'
     },
     output: {
-      path: `${__dirname}/`,
+      path: `${__dirname}/dist/`,
       filename: 'js/[name].js?[hash]'
     },
     module: {
