@@ -44,25 +44,17 @@ const setting = {
   mapTypeControl: false,
 }
 
-//const start = { lat: 25.0339687, lng: 121.5622835}
-const start = { lat: 25.0478142, lng: 121.5169488};
-const end = { lat: 23.4791187, lng: 120.4411382};
-
 const locationContent = document.getElementById('location-content');
 
 let shouldShowStreetView = false;
-let travelMode = 'DRIVING';
-let directionsService = null;
-let directionsDisplay = null;
 let stepDisplay = null;
-let markerArray =[];
-let map = null;
-let panorama = null;
-let Popup = null;
-let popup = null;
 let activePanelVal = 0;
 
-let gMap = null;
+const instance = {
+  map: document.getElementById('map'),
+  panel: document.getElementById('right-panel'),
+  popup: document.getElementById('location-content'),
+}
 
 const panelData = {
   eclipse: {
@@ -85,6 +77,8 @@ const panelData = {
 const weatherInfo = document.querySelector('.weather-info');
 
 const panelList = [ 'eclipse', 'route', 'weather',]
+
+const gMap = new GMap(instance, setting);
 
 const switchPanel = n => {
   activePanelVal = n;
@@ -114,103 +108,30 @@ const switchPanel = n => {
   })
 }
 
-const clearMarker = markerArray => {
-  for (let i = 0; i < markerArray.length; i++) {
-    markerArray[i].setMap(null);
-  }  
-}
-
-const getCurrentPosition = () => new Promise( resolve => {
-  if(navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition( position => {
-      const pos = {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude        
-      }
-      resolve(pos)
-    }
-    ,() => resolve(null))
-  }
-})
-
-const calculateAndDisplayRoute = (directionsDisplay, directionsService,markerArray, stepDisplay, map, start, end) => {
-  // First, remove any existing markers from the map.
-  clearMarker(markerArray);
-
-  // Retrieve the start and end locations and create a DirectionsRequest using
-  // WALKING directions.
-  directionsService.route({
-    origin: start,
-    destination: end,
-    travelMode,
-  }, (response, status) => {
-    // Route the directions and pass the response to a function to create
-    // markers for each step.
-
-    btnRouteDrive.disabled = false;
-    btnRouteMRT.disabled = false;
-
-    if (status === 'OK') {
-      //document.getElementById('warnings-panel').innerHTML = '<b>' + response.routes[0].warnings + '</b>';
-      directionsDisplay.setDirections(response);
-
-      showSteps(response, markerArray, stepDisplay, map);
-    } else {
-      window.alert('Directions request failed due to ' + status);
-    }
-  });
-}
-
-const showSteps = (directionResult, markerArray, stepDisplay, map) => {
-  // For each step, place a marker, and add the text to the marker's infowindow.
-  // Also attach the marker to an array so we can keep track of it and remove it
-  // when calculating new routes.
-  const myRoute = directionResult.routes[0].legs[0];
-  for (let i = 0; i < myRoute.steps.length; i++) {
-    const marker = markerArray[i] = markerArray[i] || new google.maps.Marker;
-    marker.setMap(map);
-    marker.setPosition(myRoute.steps[i].start_location);
-    attachInstructionText(stepDisplay, marker, myRoute.steps[i].instructions, map);
-  }
-}
-
-const attachInstructionText = (stepDisplay, marker, text, map) =>{
-  google.maps.event.addListener(marker, 'click', function() {
-    // Open an info window when the marker is clicked on, containing the text
-    // of the step.
-    stepDisplay.setContent(text);
-    stepDisplay.open(map, marker);
-  });
-}
-
-const addEclipseLine = map => {
-  const bluePath1 = new google.maps.Polyline({
+const addEclipseLine = () => {
+  gMap.drawPath({
     path: pathCoordsB1,
     geodesic: true,
     strokeColor: '#3300FF',
     strokeOpacity: 0.65,
-    strokeWeight: 2
-  });
+    strokeWeight: 2    
+  })
 
-  const bluePath2 = new google.maps.Polyline({
+  gMap.drawPath({
     path: pathCoordsB2,
     geodesic: true,
     strokeColor: '#3300FF',
     strokeOpacity: 0.65,
     strokeWeight: 2
-  });
+  })
 
-  const redPath1 = new google.maps.Polyline({
+  gMap.drawPath({
     path: pathCoordsR1,
     geodesic: true,
     strokeColor: '#FF0000',
     strokeOpacity: 0.65,
     strokeWeight: 2
-  });
-
-  bluePath1.setMap(map);
-  bluePath2.setMap(map);
-  redPath1.setMap(map);
+  })
 }
 
 const getWeatherData = async pos => {
@@ -253,36 +174,29 @@ const getHistoryData = async () => {
   drawChart(activePos, {monthData, dayData});
 }
 
-const setPanorama = () => {
-  panorama.setPosition(activePos.pos);
-}
-
 const setActiveMarker = () => {
   const infoTitle = document.querySelector('.info-panel h3');
-  const pos = activePos.pos;
+  const pos = activePos.position;
 
-  map.setCenter(pos);
   infoTitle.innerHTML = activePos.title;
-  setPanorama();
+  gMap.moveMap(pos);
+  gMap.setPanorama(pos);
   getHistoryData();
-  getWeatherData(activePos.pos);
+  getWeatherData(pos);
+
   if(activePanelVal === 1){
     showDirection();
+  }else{
+    gMap.clearMarker();
   }
 }
 
-const showDirection = async () => {
-  const current = await getCurrentPosition();
-  const origin = current || start;
-
-  btnRouteDrive.disabled = true;
-  btnRouteMRT.disabled = true;
-
-  calculateAndDisplayRoute(directionsDisplay, directionsService, markerArray, stepDisplay, map, origin, activePos.pos);  
+const showDirection = () => {
+  gMap.showDirection(activePos.position);
 }
 
 const eclipseRest = () => {
-  const pos = activePos.pos;
+  const pos = activePos.position;
   const {
     html,
     eclipseDate
@@ -292,106 +206,79 @@ const eclipseRest = () => {
   panelData['eclipse'].panel.innerHTML = html;
   $('.eclipse-panel .label-ec').tooltip({ boundary: 'window' });
 
-  clearMarker(markerArray);
-  directionsDisplay.setDirections({routes: []});
-  map.setCenter(pos);
-  map.setZoom(9);  
+  gMap.clearMarker();
+  gMap.setDirections({routes: []});
+  gMap.moveMap(pos);
+  gMap.zoomMap(9);
 }
 
 const weatherReset = () => {
-  const pos = activePos.pos;
-  clearMarker(markerArray);
-  directionsDisplay.setDirections({routes: []});
-  map.setCenter(pos);
-  map.setZoom(9);
+  const pos = activePos.position;
+
+  gMap.clearMarker();
+  gMap.setDirections({routes: []});
+  gMap.moveMap(pos);
+  gMap.zoomMap(9);
+
   getWeatherData(pos)  
 }
 
+const markerClick = d => {
+  const {
+    eclipseDate
+  } = loc_circ(d.position.lat, d.position.lng);
+  activePos = d;
+  activePos.eclipseDate = eclipseDate;
+  locationContent.innerText = activePos.title;
+  setActiveMarker();  
+}
+
 const initMap = () => {
-  gMap = new GMap(document.getElementById('map'), document.getElementById('right-panel'), setting);
-  map = new google.maps.Map(document.getElementById('map'), setting);
 
-  locationList.forEach( d => {
-    const image = {
-      url: './Space_11-512.png',
-      // This marker is 20 pixels wide by 32 pixels high.
-      size: new google.maps.Size(512, 512),
-      // The origin for this image is (0, 0).
-      origin: new google.maps.Point(0, 0),
-      // The anchor for this image is the base of the flagpole at (0, 32).
-      anchor: new google.maps.Point(12, 12),
-      scaledSize: new google.maps.Size(24, 24),
-    };    
-
-    const marker = new google.maps.Marker({
-      position: d.pos,
-      map: map,
-      title: d.title,
-      id: d.id,
-      //icon: image,
-    });
-
-    marker.addListener('click', () => {
-      const {
-        eclipseDate
-      } = loc_circ(d.pos.lat, d.pos.lng);
-      activePos = d;
-      activePos.eclipseDate = eclipseDate;
-      locationContent.innerText = activePos.title;
-      popup.position = new google.maps.LatLng(activePos.pos.lat, activePos.pos.lng);
-      setActiveMarker();
-      //switchPanel(0);      
-    })
-
-  })
-
-  directionsService = new google.maps.DirectionsService;
-  directionsDisplay = new google.maps.DirectionsRenderer({map: map, panel: document.getElementById('right-panel')});
+  locationList.forEach( d => { gMap.addMarker(d, markerClick); })
 
   locationContent.innerText = activePos.title;
-  Popup = createPopupClass();
-  popup = new Popup( new google.maps.LatLng(activePos.pos.lat, activePos.pos.lng), locationContent);
-
-  popup.setMap(map);
 
   stepDisplay = new google.maps.InfoWindow;
-  markerArray = [];
-
-  addEclipseLine(map);
+  addEclipseLine();
 
   panelData['route'].switchCall = showDirection;
   panelData['eclipse'].switchCall = eclipseRest;
   panelData['weather'].switchCall = weatherReset;
 
-  panorama = new google.maps.StreetViewPanorama(
-    document.getElementById('map'), {
-      visible: false,
-      addressControl: false,
-      linksControl: false,
-      panControl: false,
-      enableCloseButton: false,
-      fullscreenControl: false,
-  });
-  
-
   setActiveMarker();
   switchPanel(0);
 }
 
+const setTimePanel = () => {
+  const eclipseTime = new Date(activePos.eclipseDate.c2);
+  const currentTime = new Date();
+  const left = activePos.eclipseDate.c2/1000 - currentTime.getTime()/1000;
+
+  const secs = Math.floor(left % 60);
+  const mins = Math.floor(left/60) % 60;
+  const hours = Math.floor(left/60/60) % 24;
+  const days = Math.floor(left/60/60/24);
+
+  document.querySelector('.time-remain').innerHTML = `
+    <h3>倒數${days}天${hours}時${mins}分${secs}秒</h3>
+  `;  
+}
+
 btnRouteDrive.onclick = () => {
-  if(travelMode !== 'DRIVING'){
-    travelMode = 'DRIVING';
+  if(gMap.travelMode !== 'DRIVING'){
     btnRouteMRT.classList.remove('active');
     btnRouteDrive.classList.add('active');
+    gMap.travelMode = 'DRIVING';
     showDirection();
   }
 }
 
 btnRouteMRT.onclick = () => {
-  if(travelMode !== 'TRANSIT'){
-    travelMode = 'TRANSIT';
+  if(gMap.travelMode !== 'TRANSIT'){
     btnRouteDrive.classList.remove('active');
     btnRouteMRT.classList.add('active');
+    gMap.travelMode = 'TRANSIT';
     showDirection();
   }
 }
@@ -400,8 +287,9 @@ btnStreetView.onclick = () => {
   shouldShowStreetView = !shouldShowStreetView;
   btnStreetView.classList.toggle('active');
 
-  panorama.setVisible(shouldShowStreetView);
+  gMap.panorama.setVisible(shouldShowStreetView);
 }
+
 panelList.forEach( (d, i) => {
   const navBtn = panelData[d].navBtn;
   navBtn.onclick = () => {
@@ -409,20 +297,7 @@ panelList.forEach( (d, i) => {
   }
 })
 
-window.onload = () => {
+window.addEventListener("load", () => {
   initMap();
-  setInterval(() => {
-    const eclipseTime = new Date(activePos.eclipseDate.c2);
-    const currentTime = new Date();
-    const left = activePos.eclipseDate.c2/1000 - currentTime.getTime()/1000;
-
-    const secs = Math.floor(left % 60);
-    const mins = Math.floor(left/60) % 60;
-    const hours = Math.floor(left/60/60) % 24;
-    const days = Math.floor(left/60/60/24);
-
-    document.querySelector('.time-remain').innerHTML = `
-      <h3>倒數${days}天${hours}時${mins}分${secs}秒</h3>
-    `;
-  }, 1000)
-}
+  setInterval(setTimePanel, 1000)
+});
