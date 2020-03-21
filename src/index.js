@@ -29,6 +29,8 @@ import {
 
 import GMap from './gMap';
 
+const DEFAULT_ZOOM = 8
+
 let activePos = locationList[0];
 
 const btnRouteDrive = document.querySelector('.route-panel .btn-route-drive');
@@ -37,7 +39,7 @@ const btnStreetView = document.querySelector('.btn-streeview');
 
 const setting = {
   center: locationList[4].pos,
-  zoom: 9,
+  zoom: DEFAULT_ZOOM,
   zoomControl: true,
   fullscreenControl: false,
   streetViewControl: false,
@@ -78,7 +80,7 @@ const weatherInfo = document.querySelector('.weather-info');
 
 const panelList = [ 'eclipse', 'route', 'weather',]
 
-const gMap = new GMap(instance, setting);
+const gMap = new GMap(instance);
 
 const switchPanel = n => {
   activePanelVal = n;
@@ -198,8 +200,8 @@ const showDirection = () => {
 const eclipseRest = () => {
   const pos = activePos.position;
   const {
+    eclipseDate,
     html,
-    eclipseDate
   } = loc_circ(pos.lat, pos.lng);
 
   activePos.eclipseDate = eclipseDate;
@@ -209,7 +211,7 @@ const eclipseRest = () => {
   gMap.clearMarker();
   gMap.setDirections({routes: []});
   gMap.moveMap(pos);
-  gMap.zoomMap(9);
+  gMap.zoomMap(DEFAULT_ZOOM);
 }
 
 const weatherReset = () => {
@@ -218,7 +220,7 @@ const weatherReset = () => {
   gMap.clearMarker();
   gMap.setDirections({routes: []});
   gMap.moveMap(pos);
-  gMap.zoomMap(9);
+  gMap.zoomMap(DEFAULT_ZOOM);
 
   getWeatherData(pos)  
 }
@@ -235,18 +237,18 @@ const markerClick = d => {
 
 const initMap = () => {
 
-  locationList.forEach( d => { gMap.addMarker(d, markerClick); })
+  //locationList.forEach( d => { gMap.addMarker(d, markerClick); })
 
   locationContent.innerText = activePos.title;
 
   stepDisplay = new google.maps.InfoWindow;
-  addEclipseLine();
+  //addEclipseLine();
 
   panelData['route'].switchCall = showDirection;
   panelData['eclipse'].switchCall = eclipseRest;
   panelData['weather'].switchCall = weatherReset;
 
-  setActiveMarker();
+  //setActiveMarker();
   switchPanel(0);
 }
 
@@ -261,7 +263,7 @@ const setTimePanel = () => {
   const days = Math.floor(left/60/60/24);
 
   document.querySelector('.time-remain').innerHTML = `
-    <h3>倒數${days}天${hours}時${mins}分${secs}秒</h3>
+    <h3>距離2020年6月21日的日環食倒數${days}天${hours}時${mins}分${secs}秒</h3>
   `;  
 }
 
@@ -287,6 +289,10 @@ btnStreetView.onclick = () => {
   shouldShowStreetView = !shouldShowStreetView;
   btnStreetView.classList.toggle('active');
 
+  btnStreetView.innerHTML = shouldShowStreetView
+    ? '<i class="fa fa-map" aria-hidden="true"></i> 顯示地圖'
+    : '<i class="fa fa-street-view" aria-hidden="true"></i> 顯示街景'
+
   gMap.panorama.setVisible(shouldShowStreetView);
 }
 
@@ -299,5 +305,5 @@ panelList.forEach( (d, i) => {
 
 window.addEventListener("load", () => {
   initMap();
-  setInterval(setTimePanel, 1000)
+  //setInterval(setTimePanel, 1000)
 });

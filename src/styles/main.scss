@@ -31,7 +31,8 @@ body{
   height: 100vh;
 
   [class*="col-"]{
-    max-height: 100%;    
+    height: calc(100% - 64px);
+    overflow: auto;
   }  
   .time-remain{
     height: 64px;

@@ -64,7 +64,19 @@ const calculateAndDisplayRoute = (directionsDisplay, directionsService,markerArr
       displayRoute(start, end, directionsService, directionsDisplay);
       //showSteps(response, markerArray, stepDisplay, map);
     } else {
-      window.alert('Directions request failed due to ' + status);
+
+      console.log('Directions request failed due to ' + status);
+      directionsService.route({
+        origin: defaultSettings.start,
+        destination: end,
+        travelMode,
+      }, (response, status) => {
+        directionsDisplay.setDirections(response);
+        if (status === 'OK') {
+          displayRoute(start, end, directionsService, directionsDisplay);
+        }
+      })
+
     }
   });
 }
@@ -78,7 +90,7 @@ const displayRoute = (origin, destination, service, display) => {
     if (status === 'OK') {
       display.setDirections(response);
     } else {
-      alert('Could not display directions due to: ' + status);
+    //  alert('Could not display directions due to: ' + status);
     }
   });
 }
@@ -174,9 +186,24 @@ class GMap {
   }
 
   async showDirection(end) {
-    const current = await getCurrentPosition();
-    const origin = current || start;
-    calculateAndDisplayRoute(this.directionsDisplay, this.directionsService, this.markerArray, this.stepDisplay, this.map, origin, end, this.travelMode);  
+    let current = null
+    try{
+      current = await getCurrentPosition();
+    }catch(e){
+      current = null
+    }
+
+    const origin = current || defaultSettings.start;
+    calculateAndDisplayRoute(
+      this.directionsDisplay, 
+      this.directionsService, 
+      this.markerArray, 
+      this.stepDisplay, 
+      this.map, 
+      origin, 
+      end, 
+      this.travelMode
+    );  
   }
 
   initMap() {
