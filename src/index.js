@@ -29,7 +29,7 @@ import {
 
 import GMap from './gMap';
 
-const DEFAULT_ZOOM = 8
+const DEFAULT_ZOOM = 9
 
 let activePos = locationList[0];
 
@@ -197,7 +197,7 @@ const showDirection = () => {
   gMap.showDirection(activePos.position);
 }
 
-const eclipseRest = () => {
+const eclipseReset = () => {
   const pos = activePos.position;
   const {
     eclipseDate,
@@ -227,28 +227,31 @@ const weatherReset = () => {
 
 const markerClick = d => {
   const {
-    eclipseDate
+    eclipseDate,
+    html,
   } = loc_circ(d.position.lat, d.position.lng);
   activePos = d;
   activePos.eclipseDate = eclipseDate;
+  panelData['eclipse'].panel.innerHTML = html;
+
   locationContent.innerText = activePos.title;
   setActiveMarker();  
 }
 
 const initMap = () => {
 
-  //locationList.forEach( d => { gMap.addMarker(d, markerClick); })
+  locationList.forEach( d => { gMap.addMarker(d, markerClick); })
 
   locationContent.innerText = activePos.title;
 
   stepDisplay = new google.maps.InfoWindow;
-  //addEclipseLine();
+  addEclipseLine();
 
   panelData['route'].switchCall = showDirection;
-  panelData['eclipse'].switchCall = eclipseRest;
+  panelData['eclipse'].switchCall = eclipseReset;
   panelData['weather'].switchCall = weatherReset;
 
-  //setActiveMarker();
+  setActiveMarker();
   switchPanel(0);
 }
 
@@ -305,5 +308,5 @@ panelList.forEach( (d, i) => {
 
 window.addEventListener("load", () => {
   initMap();
-  //setInterval(setTimePanel, 1000)
+  setInterval(setTimePanel, 1000)
 });

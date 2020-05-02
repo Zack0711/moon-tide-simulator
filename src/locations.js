@@ -9,7 +9,6 @@ const locationList = [
     position: {lat: 23.473516, lng: 120.2923827},
     index: 'C0M740',
   },
-/*  
   {
     title: '高跟鞋教堂',
     position: {lat: 23.377093, lng: 120.147756},
@@ -20,7 +19,6 @@ const locationList = [
     position: {lat: 23.6202176, lng: 120.577039},
     index: 'C0K490',
   },
-*/
   {
     title: '阿里山火車站',
     position: {lat: 23.5102602, lng: 120.804109},
@@ -31,6 +29,7 @@ const locationList = [
     position: {lat: 23.1232284, lng: 121.4082564},
     index: '467610',
   },
+/*
   {
     title: '金城國中',
     position: {lat: 24.4313036, lng: 118.31294},
@@ -41,6 +40,7 @@ const locationList = [
     position: {lat: 23.5996608, lng: 119.6713901},
     index: 'noData',
   },  
+*/
 ]
 
 const locationData = {

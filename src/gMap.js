@@ -61,7 +61,7 @@ const calculateAndDisplayRoute = (directionsDisplay, directionsService,markerArr
       //document.getElementById('warnings-panel').innerHTML = '<b>' + response.routes[0].warnings + '</b>';
       directionsDisplay.setDirections(response);
 
-      displayRoute(start, end, directionsService, directionsDisplay);
+      displayRoute(start, end, directionsService, directionsDisplay, travelMode);
       //showSteps(response, markerArray, stepDisplay, map);
     } else {
 
@@ -73,7 +73,7 @@ const calculateAndDisplayRoute = (directionsDisplay, directionsService,markerArr
       }, (response, status) => {
         directionsDisplay.setDirections(response);
         if (status === 'OK') {
-          displayRoute(start, end, directionsService, directionsDisplay);
+          displayRoute(start, end, directionsService, directionsDisplay, travelMode);
         }
       })
 
@@ -81,11 +81,11 @@ const calculateAndDisplayRoute = (directionsDisplay, directionsService,markerArr
   });
 }
 
-const displayRoute = (origin, destination, service, display) => {
+const displayRoute = (origin, destination, service, display, travelMode) => {
   service.route({
     origin: origin,
     destination: destination,
-    travelMode: 'DRIVING',
+    travelMode,
   }, function(response, status) {
     if (status === 'OK') {
       display.setDirections(response);
